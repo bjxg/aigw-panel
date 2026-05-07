@@ -1,0 +1,27 @@
+name: Rebuild aigw-server Image
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger aigw-server docker publish workflow
+        env:
+          GH_TOKEN: ${{ secrets.aigw-server_WORKFLOW_TOKEN }}
+          TARGET_REF: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "aigw-server_WORKFLOW_TOKEN secret is required to trigger aigw-server docker builds." >&2
+            exit 1
+          fi
+
+          gh workflow run docker-publish.yml \
+            --repo bjxg/aigw-server \
+            --ref "${TARGET_REF}"
+
+          echo "Triggered aigw-server docker-publish.yml for ${TARGET_REF}"
