@@ -4,7 +4,7 @@
 
 **Goal:** Add a first-tab auth-file trend view for Kimi and Codex credentials, backed by persisted quota snapshots and existing request logs.
 
-**Architecture:** aigw-server persists normalized quota snapshot points keyed by `auth_index`, provider, quota key, window, and timestamp. aigw-panel fetches per-file trend data and renders request totals, daily usage, and quota curves in the auth-file detail modal before the raw JSON tab.
+**Architecture:** aigw persists normalized quota snapshot points keyed by `auth_index`, provider, quota key, window, and timestamp. aigw-panel fetches per-file trend data and renders request totals, daily usage, and quota curves in the auth-file detail modal before the raw JSON tab.
 
 **Tech Stack:** Go + SQLite + Gin management API; React 19 + Vite + Vitest + ECharts.
 
@@ -26,12 +26,12 @@
 
 **Files:**
 
-- Modify: `aigw-server/internal/usage/usage_db.go`
-- Modify: `aigw-server/internal/api/handlers/management/quota.go`
-- Modify: `aigw-server/internal/api/handlers/management/usage_logs_handler.go`
-- Modify: `aigw-server/internal/api/server.go`
-- Test: `aigw-server/internal/usage/usage_db_test.go`
-- Test: `aigw-server/internal/api/handlers/management/usage_logs_handler_test.go`
+- Modify: `aigw/internal/usage/usage_db.go`
+- Modify: `aigw/internal/api/handlers/management/quota.go`
+- Modify: `aigw/internal/api/handlers/management/usage_logs_handler.go`
+- Modify: `aigw/internal/api/server.go`
+- Test: `aigw/internal/usage/usage_db_test.go`
+- Test: `aigw/internal/api/handlers/management/usage_logs_handler_test.go`
 
 - [x] Write failing Go tests for recording multiple quota points and querying a single auth file trend.
 - [x] Run targeted Go tests and confirm they fail on missing APIs.
@@ -58,5 +58,5 @@
 ### Task 4: Verification And Integration
 
 - [x] Run aigw-panel targeted tests, lint, format, format check, and build.
-- [x] Run aigw-server targeted tests and `go test ./...`.
+- [x] Run aigw targeted tests and `go test ./...`.
 - [ ] Push feature branches and merge to `dev` per repository policy after verification.

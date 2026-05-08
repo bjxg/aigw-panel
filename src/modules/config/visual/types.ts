@@ -144,7 +144,7 @@ export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
   usageStatisticsEnabled: false,
   autoUpdateEnabled: true,
   autoUpdateChannel: "main",
-  autoUpdateDockerImage: "ghcr.io/bjxg/aigw-server",
+  autoUpdateDockerImage: "ghcr.io/bjxg/aigw",
   proxyUrl: "",
   forceModelPrefix: false,
   requestRetry: "",

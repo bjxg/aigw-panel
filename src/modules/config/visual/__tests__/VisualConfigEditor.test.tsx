@@ -15,7 +15,7 @@ function renderEditor(onChange = vi.fn()) {
           ...DEFAULT_VISUAL_VALUES,
           autoUpdateEnabled: true,
           autoUpdateChannel: "main",
-          autoUpdateDockerImage: "ghcr.io/bjxg/aigw-server",
+          autoUpdateDockerImage: "ghcr.io/bjxg/aigw",
         }}
         onChange={onChange}
       />
@@ -48,13 +48,13 @@ describe("VisualConfigEditor auto update config", () => {
     const onChange = renderEditor();
 
     const input = screen.getByRole("textbox", { name: /docker image repository/i });
-    expect(input).toHaveValue("ghcr.io/bjxg/aigw-server");
+    expect(input).toHaveValue("ghcr.io/bjxg/aigw");
     expect(screen.getByText(/custom images can break updates/i)).toBeInTheDocument();
 
-    fireEvent.change(input, { target: { value: "registry.local/mirror/aigw-server" } });
+    fireEvent.change(input, { target: { value: "registry.local/mirror/aigw" } });
 
     expect(onChange).toHaveBeenLastCalledWith({
-      autoUpdateDockerImage: "registry.local/mirror/aigw-server",
+      autoUpdateDockerImage: "registry.local/mirror/aigw",
     });
   });
 
@@ -63,7 +63,7 @@ describe("VisualConfigEditor auto update config", () => {
 
     act(() => {
       result.current.loadVisualValuesFromYaml(
-        "auto-update:\n  enabled: false\n  channel: dev\n  docker-image: registry.local/mirror/aigw-server\n",
+        "auto-update:\n  enabled: false\n  channel: dev\n  docker-image: registry.local/mirror/aigw\n",
       );
     });
 
@@ -71,7 +71,7 @@ describe("VisualConfigEditor auto update config", () => {
       expect(result.current.visualValues).toMatchObject({
         autoUpdateEnabled: false,
         autoUpdateChannel: "dev",
-        autoUpdateDockerImage: "registry.local/mirror/aigw-server",
+        autoUpdateDockerImage: "registry.local/mirror/aigw",
       });
     });
 
@@ -79,7 +79,7 @@ describe("VisualConfigEditor auto update config", () => {
       result.current.setVisualValues({
         autoUpdateEnabled: true,
         autoUpdateChannel: "dev",
-        autoUpdateDockerImage: "registry.example.com/team/aigw-server",
+        autoUpdateDockerImage: "registry.example.com/team/aigw",
       });
     });
 
@@ -88,7 +88,7 @@ describe("VisualConfigEditor auto update config", () => {
       expect(result.current.applyVisualChangesToYaml("")).toContain("enabled: true");
       expect(result.current.applyVisualChangesToYaml("")).toContain("channel: dev");
       expect(result.current.applyVisualChangesToYaml("")).toContain(
-        "docker-image: registry.example.com/team/aigw-server",
+        "docker-image: registry.example.com/team/aigw",
       );
     });
   });

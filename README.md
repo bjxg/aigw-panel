@@ -9,7 +9,7 @@
 <h1 align="center">🖥️ Code Proxy · Admin Dashboard</h1>
 
 <p align="center">
-  <strong>The official frontend management panel for <a href="https://github.com/bjxg/aigw-server">aigw-server (CLI Proxy API)</a></strong>
+  <strong>The official frontend management panel for <a href="https://github.com/bjxg/aigw">aigw (CLI Proxy API)</a></strong>
 </p>
 
 <p align="center">
@@ -27,7 +27,7 @@
 
 ## ✨ Overview
 
-**Code Proxy** is the official web-based admin panel for [**aigw-server**](https://github.com/bjxg/aigw-server) — a proxy server that wraps Gemini CLI, Antigravity, ChatGPT Codex, Claude Code, Qwen Code, Kiro, and iFlow as OpenAI/Gemini/Claude compatible API services.
+**Code Proxy** is the official web-based admin panel for [**aigw**](https://github.com/bjxg/aigw) — a proxy server that wraps Gemini CLI, Antigravity, ChatGPT Codex, Claude Code, Qwen Code, Kiro, and iFlow as OpenAI/Gemini/Claude compatible API services.
 
 This dashboard provides a complete management interface for your AI proxy infrastructure:
 
@@ -230,7 +230,7 @@ The gallery below uses the latest 13 management-panel screenshots and maps each 
 ### Prerequisites
 
 - [Bun](https://bun.sh/) ≥ 1.2 (or Node.js ≥ 18)
-- A running [aigw-server](https://github.com/bjxg/aigw-server) backend instance
+- A running [aigw](https://github.com/bjxg/aigw) backend instance
 
 ### Install & Run
 
@@ -287,7 +287,7 @@ src/
 
 ## 🔌 API Integration
 
-This dashboard communicates with the aigw-server backend via the Management API:
+This dashboard communicates with the aigw backend via the Management API:
 
 | Endpoint                                  | Method            | Description                         |
 | :---------------------------------------- | :---------------- | :---------------------------------- |
@@ -308,7 +308,7 @@ This dashboard communicates with the aigw-server backend via the Management API:
 
 > **Note:** The API base is automatically normalized to `{apiBase}/v0/management`
 
-For full backend API documentation, see the [aigw-server Management API](https://help.router-for.me/management/api).
+For full backend API documentation, see the [aigw Management API](https://help.router-for.me/management/api).
 
 ## 🤝 Contributing
 
@@ -322,8 +322,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 Related Projects
 
-- **[aigw-server](https://github.com/bjxg/aigw-server)** — The backend proxy server (Go)
-- **[aigw-server Guides](https://help.router-for.me/)** — Official documentation
+- **[aigw](https://github.com/bjxg/aigw)** — The backend proxy server (Go)
+- **[aigw Guides](https://help.router-for.me/)** — Official documentation
 
 ## 📝 License
 
@@ -332,5 +332,5 @@ This project is open source. See the [LICENSE](LICENSE) file for details.
 ---
 
 <p align="center">
-  Made with ❤️ for the <a href="https://github.com/bjxg/aigw-server">aigw-server</a> community
+  Made with ❤️ for the <a href="https://github.com/bjxg/aigw">aigw</a> community
 </p>

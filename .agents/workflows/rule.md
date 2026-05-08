@@ -14,8 +14,8 @@ description: 前端项目规范和 CI/CD 检查流程
 
 ## 后端项目信息
 
-- **仓库**: `bjxg/aigw-server`
-- **本地路径**: `/Users/chengcy/dev/sources/go/aigw-server`
+- **仓库**: `bjxg/aigw`
+- **本地路径**: `/Users/chengcy/dev/sources/go/aigw`
 - **技术栈**: Go
 
 ## CI/CD 流程
@@ -57,7 +57,7 @@ gh run view <RUN_ID> --repo bjxg/aigw-panel --log-failed 2>&1 | tail -40
 5. 如果后端也有推送，检查后端 CI 状态
 
 ```bash
-gh run list --repo bjxg/aigw-server -L 3 --json databaseId,status,conclusion,displayTitle,headBranch
+gh run list --repo bjxg/aigw -L 3 --json databaseId,status,conclusion,displayTitle,headBranch
 ```
 
 ## 构建命令

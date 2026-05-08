@@ -65,7 +65,7 @@ API Key 数量较多时，原先只能在每个 API Key 的编辑弹窗里逐个
 
 ### 背景
 
-aigw-server 后端新增 Docker-first 自动更新能力，需要前端在用户登录后自动检查新版本、展示 release notes，并允许用户从管理面板触发 Docker 更新。
+aigw 后端新增 Docker-first 自动更新能力，需要前端在用户登录后自动检查新版本、展示 release notes，并允许用户从管理面板触发 Docker 更新。
 
 ### 结论
 

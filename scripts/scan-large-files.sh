@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 FRONTEND_SRC="$WORKSPACE_ROOT/aigw-panel/src"
-BACKEND_ROOT="$WORKSPACE_ROOT/aigw-server"
+BACKEND_ROOT="$WORKSPACE_ROOT/aigw"
 
 echo "== aigw-panel large TS/TSX files (>= 800 lines) =="
 if [[ -d "$FRONTEND_SRC" ]]; then
@@ -18,12 +18,12 @@ else
 fi
 
 echo
-echo "== aigw-server large Go files (>= 1000 lines) =="
+echo "== aigw large Go files (>= 1000 lines) =="
 if [[ -d "$BACKEND_ROOT" ]]; then
   find "$BACKEND_ROOT" -type f -name '*.go' -not -path '*/vendor/*' -print0 \
     | xargs -0 wc -l \
     | awk '$1 >= 1000 {print $1, $2}' \
     | sort -nr
 else
-  echo "aigw-server directory not found: $BACKEND_ROOT" >&2
+  echo "aigw directory not found: $BACKEND_ROOT" >&2
 fi
