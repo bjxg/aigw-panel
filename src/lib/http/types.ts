@@ -212,32 +212,6 @@ export interface BedrockProviderConfig extends ProviderSimpleConfig {
   forceGlobal?: boolean;
 }
 
-export type OAuthProvider = "codex" | "anthropic" | "antigravity" | "gemini-cli" | "kimi" | "qwen";
-
-export interface OAuthStartResponse {
-  url: string;
-  state?: string;
-}
-
-export interface OAuthCallbackResponse {
-  status: "ok";
-}
-
-export interface OAuthModelAliasEntry {
-  name: string;
-  alias: string;
-  fork?: boolean;
-}
-
-export interface IFlowCookieAuthResponse {
-  status: "ok" | "error";
-  error?: string;
-  saved_path?: string;
-  email?: string;
-  expired?: string;
-  type?: string;
-}
-
 export interface LogsQuery {
   after?: number;
   limit?: number;

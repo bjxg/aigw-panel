@@ -5,7 +5,7 @@ import { ProtectedRoute } from "@/app/guards/ProtectedRoute";
 import { DashboardLayout } from "@/modules/layout/DashboardLayout";
 import { ThemeProvider } from "@/modules/ui/ThemeProvider";
 import { ToastProvider } from "@/modules/ui/ToastProvider";
-import { AutoUpdatePrompt } from "@/modules/update/AutoUpdatePrompt";
+
 
 // Lazy-loaded page components for route-level code splitting
 const LoginPage = lazy(() =>
@@ -23,9 +23,7 @@ const RequestLogsPage = lazy(() =>
 const ProvidersPage = lazy(() =>
   import("@/modules/providers/ProvidersPage").then((m) => ({ default: m.ProvidersPage })),
 );
-const AuthFilesPage = lazy(() =>
-  import("@/modules/auth-files/AuthFilesPage").then((m) => ({ default: m.AuthFilesPage })),
-);
+
 const ConfigPage = lazy(() =>
   import("@/modules/config/ConfigPage").then((m) => ({ default: m.ConfigPage })),
 );
@@ -88,7 +86,6 @@ export function AppRouter() {
                 path="*"
                 element={
                   <AuthProvider>
-                    <AutoUpdatePrompt />
                     <Suspense>
                       <Routes>
                         <Route path="/login" element={<LoginPage />} />
@@ -99,15 +96,6 @@ export function AppRouter() {
                             <Route path="/monitor/request-logs" element={<RequestLogsPage />} />
                             <Route path="/ai-providers" element={<ProvidersPage />} />
                             <Route path="/ai-providers/*" element={<ProvidersPage />} />
-                            <Route path="/auth-files" element={<AuthFilesPage />} />
-                            <Route
-                              path="/auth-files/oauth-excluded"
-                              element={<Navigate to="/auth-files?tab=excluded" replace />}
-                            />
-                            <Route
-                              path="/auth-files/oauth-model-alias"
-                              element={<Navigate to="/auth-files?tab=alias" replace />}
-                            />
                             <Route path="/usage" element={<Navigate to="/monitor" replace />} />
                             <Route path="/config" element={<ConfigPage />} />
                             <Route path="/logs" element={<LogsPage />} />

@@ -6,12 +6,43 @@ import type {
   ProviderModel,
   ProviderSimpleConfig,
 } from "@/lib/http/types";
-import {
-  matchesModelPattern,
-  normalizeProviderKey,
-  readAuthFilesModelOwnerGroupMap,
-  resolveFileType,
-} from "@/modules/auth-files/helpers/authFilesPageUtils";
+
+const AUTH_FILES_MODEL_OWNER_GROUP_MAP_KEY = "authFilesPage.modelOwnerGroupMap.v1";
+
+const normalizeProviderKey = (value: string): string => value.trim().toLowerCase();
+
+const matchesModelPattern = (modelId: string, pattern: string): boolean => {
+  const rawModel = String(modelId ?? "").trim();
+  const rawPattern = String(pattern ?? "").trim();
+  if (!rawModel || !rawPattern) return false;
+  if (!rawPattern.includes("*")) {
+    return rawModel.toLowerCase() === rawPattern.toLowerCase();
+  }
+  const escaped = rawPattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+  try {
+    return new RegExp(`^${escaped}$`, "i").test(rawModel);
+  } catch {
+    return false;
+  }
+};
+
+const readAuthFilesModelOwnerGroupMap = (): Record<string, string> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(AUTH_FILES_MODEL_OWNER_GROUP_MAP_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as Record<string, string>;
+  } catch {
+    return {};
+  }
+};
+
+const resolveFileType = (file: AuthFileItem): string => {
+  const type = typeof file.type === "string" ? file.type : "";
+  const provider = typeof file.provider === "string" ? file.provider : "";
+  const fromName = String(file.name || "").split(".")[0] ?? "";
+  return normalizeProviderKey(type || provider || fromName) || "unknown";
+};
 
 export type ModelAvailabilityItem = {
   id: string;

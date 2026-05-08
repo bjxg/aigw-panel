@@ -18,7 +18,6 @@ import {
   Image,
   Layers,
   LayoutDashboard,
-  FileKey,
   FileText,
   Info,
   LogOut,
@@ -53,7 +52,6 @@ const NAV_ITEMS = [
   { to: "/monitor", i18nKey: "shell.nav_monitor", icon: Activity },
   { to: "/monitor/request-logs", i18nKey: "shell.nav_request_logs", icon: ScrollText },
   { to: "/ai-providers", i18nKey: "shell.nav_ai_providers", icon: Bot },
-  { to: "/auth-files", i18nKey: "shell.nav_auth_files", icon: FileKey },
   { to: "/api-keys", i18nKey: "shell.nav_api_keys", icon: Sparkles },
   { to: "/api-key-permissions", i18nKey: "shell.nav_api_key_permissions", icon: ShieldCheck },
   {
@@ -80,7 +78,6 @@ const getPageTitleKey = (pathname: string): string => {
   if (pathname.startsWith("/monitor/request-logs")) return "shell.nav_request_logs";
   if (pathname.startsWith("/monitor")) return "shell.nav_monitor";
   if (pathname.startsWith("/ai-providers")) return "shell.nav_ai_providers";
-  if (pathname.startsWith("/auth-files")) return "shell.nav_auth_files";
   if (pathname.startsWith("/api-keys")) return "shell.page_api_keys";
   if (
     pathname.startsWith("/api-key-permissions") ||

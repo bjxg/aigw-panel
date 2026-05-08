@@ -1,27 +1,5 @@
 import { apiClient } from "@/lib/http/client";
 import type { ApiCallRequest, ApiCallResult } from "@/lib/http/types";
-import { isRecord } from "@/lib/http/apis/helpers";
-
-const normalizeApiCallBody = (input: unknown): { bodyText: string; body: unknown | null } => {
-  if (input === undefined || input === null) return { bodyText: "", body: null };
-
-  if (typeof input === "string") {
-    const text = input;
-    const trimmed = text.trim();
-    if (!trimmed) return { bodyText: text, body: null };
-    try {
-      return { bodyText: text, body: JSON.parse(trimmed) };
-    } catch {
-      return { bodyText: text, body: text };
-    }
-  }
-
-  try {
-    return { bodyText: JSON.stringify(input), body: input };
-  } catch {
-    return { bodyText: String(input), body: input };
-  }
-};
 
 export const getApiCallErrorMessage = (result: ApiCallResult): string => {
   const status = result.statusCode;
@@ -29,15 +7,15 @@ export const getApiCallErrorMessage = (result: ApiCallResult): string => {
   const bodyText = result.bodyText;
   let message = "";
 
-  if (isRecord(body)) {
-    const errorValue = body.error;
-    if (isRecord(errorValue) && typeof errorValue.message === "string") {
-      message = errorValue.message;
+  if (body && typeof body === "object" && !Array.isArray(body)) {
+    const errorValue = (body as Record<string, unknown>).error;
+    if (errorValue && typeof errorValue === "object" && typeof (errorValue as Record<string, unknown>).message === "string") {
+      message = (errorValue as Record<string, unknown>).message as string;
     } else if (typeof errorValue === "string") {
       message = errorValue;
     }
-    if (!message && typeof body.message === "string") {
-      message = body.message;
+    if (!message && typeof (body as Record<string, unknown>).message === "string") {
+      message = (body as Record<string, unknown>).message as string;
     }
   } else if (typeof body === "string") {
     message = body;
@@ -53,19 +31,7 @@ export const getApiCallErrorMessage = (result: ApiCallResult): string => {
 };
 
 export const apiCallApi = {
-  request: async (payload: ApiCallRequest): Promise<ApiCallResult> => {
-    const response = await apiClient.post<Record<string, unknown>>("/api-call", payload, {
-      timeoutMs: 60000,
-    });
-    const statusCode = Number(response?.status_code ?? response?.statusCode ?? 0);
-    const header = (response?.header ?? response?.headers ?? {}) as Record<string, string[]>;
-    const { bodyText, body } = normalizeApiCallBody(response?.body);
-
-    return {
-      statusCode,
-      header,
-      bodyText,
-      body: body as ApiCallResult["body"],
-    };
+  request: async (_payload: ApiCallRequest): Promise<ApiCallResult> => {
+    throw new Error("api-call endpoint has been removed");
   },
 };

@@ -43,14 +43,6 @@ export interface RoutingConfig {
   pathRoutes?: RoutingPathRouteConfig[];
 }
 
-export interface AutoUpdateConfig {
-  enabled?: boolean;
-  channel?: "main" | "dev" | "auto" | string;
-  repository?: string;
-  dockerImage?: string;
-  updaterUrl?: string;
-}
-
 export interface Config {
   debug?: boolean;
   proxyUrl?: string;
@@ -72,9 +64,7 @@ export interface Config {
   claudeApiKeys?: ProviderKeyConfig[];
   vertexApiKeys?: ProviderKeyConfig[];
   openaiCompatibility?: OpenAIProviderConfig[];
-  oauthExcludedModels?: Record<string, string[]>;
   kimiHeaderDefaults?: KimiHeaderDefaults;
-  autoUpdate?: AutoUpdateConfig;
   raw?: Record<string, unknown>;
 }
 
@@ -90,7 +80,6 @@ export type RawConfigSection =
   | "ws-auth"
   | "force-model-prefix"
   | "routing/strategy"
-  | "auto-update"
   | "api-keys"
   | "ampcode"
   | "gemini-api-key"
@@ -98,8 +87,7 @@ export type RawConfigSection =
   | "opencode-go-api-key"
   | "claude-api-key"
   | "vertex-api-key"
-  | "openai-compatibility"
-  | "oauth-excluded-models";
+  | "openai-compatibility";
 
 export interface ConfigCache {
   data: Config;

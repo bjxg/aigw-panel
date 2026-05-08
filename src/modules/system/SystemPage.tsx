@@ -20,7 +20,6 @@ import { Button } from "@/modules/ui/Button";
 import { Card } from "@/modules/ui/Card";
 import { TextInput } from "@/modules/ui/Input";
 import { useToast } from "@/modules/ui/ToastProvider";
-import { UpdateDetailsCard } from "@/modules/update/UpdateDetailsCard";
 import { loadConfiguredModelAvailability } from "@/modules/models/modelAvailability";
 
 // Vendor SVG icons
@@ -463,11 +462,6 @@ export function SystemPage({
           link
         />
       </div>
-
-      <UpdateDetailsCard
-        heartbeatIntervalMs={updateHeartbeatIntervalMs}
-        heartbeatTimeoutMs={updateHeartbeatTimeoutMs}
-      />
 
       {/* ── Model List ── */}
       <Card padding="none" className="overflow-hidden" bodyClassName="mt-0">

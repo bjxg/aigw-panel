@@ -1,6 +1,5 @@
 import type {
   BedrockProviderConfig,
-  OAuthModelAliasEntry,
   OpenAIProvider,
   ProviderApiKeyEntry,
   ProviderModel,
@@ -242,67 +241,6 @@ export const serializeOpenAIProvider = (provider: OpenAIProvider) => {
   }
 
   return payload;
-};
-
-export const normalizeOauthExcludedModels = (payload: unknown): Record<string, string[]> => {
-  if (!isRecord(payload)) return {};
-  const source = payload["oauth-excluded-models"] ?? payload.items ?? payload;
-  if (!isRecord(source)) return {};
-
-  const result: Record<string, string[]> = {};
-
-  Object.entries(source).forEach(([provider, models]) => {
-    const key = String(provider ?? "")
-      .trim()
-      .toLowerCase();
-    if (!key) return;
-    const normalized = normalizeExcludedModels(models);
-    if (!normalized) return;
-    result[key] = normalized;
-  });
-
-  return result;
-};
-
-export const normalizeOauthModelAlias = (
-  payload: unknown,
-): Record<string, OAuthModelAliasEntry[]> => {
-  if (!isRecord(payload)) return {};
-  const source = payload["oauth-model-alias"] ?? payload.items ?? payload;
-  if (!isRecord(source)) return {};
-
-  const result: Record<string, OAuthModelAliasEntry[]> = {};
-
-  Object.entries(source).forEach(([channel, mappings]) => {
-    const key = String(channel ?? "")
-      .trim()
-      .toLowerCase();
-    if (!key) return;
-    if (!Array.isArray(mappings)) return;
-    const seen = new Set<string>();
-    const normalized = mappings
-      .map((item) => {
-        if (!isRecord(item)) return null;
-        const name = normalizeString(item.name ?? item.id ?? item.model) ?? "";
-        const alias = normalizeString(item.alias) ?? "";
-        if (!name || !alias) return null;
-        const fork = item.fork === true;
-        return fork ? { name, alias, fork } : { name, alias };
-      })
-      .filter(Boolean)
-      .filter((entry) => {
-        const aliasEntry = entry as OAuthModelAliasEntry;
-        const dedupeKey = `${aliasEntry.name.toLowerCase()}::${aliasEntry.alias.toLowerCase()}::${aliasEntry.fork ? "1" : "0"}`;
-        if (seen.has(dedupeKey)) return false;
-        seen.add(dedupeKey);
-        return true;
-      }) as OAuthModelAliasEntry[];
-    if (normalized.length) {
-      result[key] = normalized;
-    }
-  });
-
-  return result;
 };
 
 export const normalizeApiKeyEntries = (raw: unknown): ProviderApiKeyEntry[] | undefined => {
