@@ -379,8 +379,10 @@ export function ApiKeysPage() {
     if (deleteIndex === null) return;
     setSaving(true);
     try {
+      const entry = entries[deleteIndex];
       const response = (await apiKeyEntriesApi.delete({
-        index: deleteIndex,
+        id: entry.id,
+        index: entry.id ? undefined : deleteIndex,
         deleteLogs: deleteLogsOnDelete,
       })) as { logs_deleted?: number } | undefined;
       const logsDeleted =
@@ -632,7 +634,7 @@ export function ApiKeysPage() {
           <VirtualTable<ApiKeyEntry>
             rows={entries}
             columns={apiKeyColumns}
-            rowKey={(row) => row.key}
+            rowKey={(row) => String(row.id ?? row.key)}
             rowHeight={44}
             height="h-[calc(100dvh-260px)] max-h-[70vh]"
             minHeight="min-h-[320px]"
@@ -711,7 +713,7 @@ export function ApiKeysPage() {
         open={usageViewKey !== null}
         onClose={closeUsageModal}
         usageViewName={usageViewName}
-        maskedKey={usageViewKey ? maskApiKey(usageViewKey) : ""}
+        usageKeyId={usageViewKey ?? 0}
         usageTotalCount={usageTotalCount}
         usageTimeRange={usageTimeRange}
         setUsageTimeRange={setUsageTimeRange}

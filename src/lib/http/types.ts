@@ -147,7 +147,7 @@ export interface ChartDataResponse {
     total_tokens: number;
   }[];
   hourly_models: { hour: string; model: string; requests: number }[];
-  apikey_distribution: { api_key: string; name: string; requests: number; tokens: number }[];
+  apikey_distribution: { api_key_id: number; name: string; requests: number; tokens: number }[];
 }
 
 export interface EntityStatPoint {

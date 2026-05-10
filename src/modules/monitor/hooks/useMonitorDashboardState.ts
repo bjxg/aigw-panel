@@ -25,8 +25,8 @@ export function useMonitorDashboardState() {
   }, []);
 
   const [timeRange, setTimeRange] = useState<TimeRange>(7);
-  const [apiFilterInput, setApiFilterInput] = useState("");
-  const [apiFilter, setApiFilter] = useState("");
+  const [apiFilterInput, setApiFilterInput] = useState<number>(0);
+  const [apiFilter, setApiFilter] = useState<number>(0);
   const [modelHourWindow, setModelHourWindow] = useState<HourWindow>(24);
   const [tokenHourWindow, setTokenHourWindow] = useState<HourWindow>(24);
   const [modelMetric, setModelMetric] = useState<MonitorMetric>("requests");
@@ -43,6 +43,7 @@ export function useMonitorDashboardState() {
     apiFilterInput,
     setApiFilterInput,
     apiFilter,
+    setApiFilter,
     applyFilter,
     modelHourWindow,
     setModelHourWindow,

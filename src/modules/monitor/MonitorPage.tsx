@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { usageApi } from "@/lib/http/apis";
+import type { APIKeyFilterItem } from "@/lib/http/apis/usage";
+import { apiKeyEntriesApi } from "@/lib/http/apis/api-keys";
 import { useTheme } from "@/modules/ui/ThemeProvider";
 import { CHART_COLOR_CLASSES, HOURLY_MODEL_COLORS } from "@/modules/monitor/monitor-constants";
 import {
@@ -50,6 +52,7 @@ export function MonitorPage() {
     apiFilterInput,
     setApiFilterInput,
     apiFilter,
+    setApiFilter,
     applyFilter,
     modelHourWindow,
     setModelHourWindow,
@@ -91,12 +94,13 @@ export function MonitorPage() {
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(true);
   const [isPending, startTransition] = useTransition();
+  const [apiKeyOptions, setApiKeyOptions] = useState<APIKeyFilterItem[]>([]);
 
   const refreshData = useCallback(async () => {
     setIsRefreshing(true);
     setError(null);
     try {
-      const chartResp = await usageApi.getChartData(timeRange, apiFilter);
+      const chartResp = await usageApi.getChartData(timeRange, apiFilter || undefined);
       startTransition(() => {
         setChartData(chartResp);
       });
@@ -159,6 +163,22 @@ export function MonitorPage() {
 
   const hasData = metrics.totalRequests > 0;
   const isLoading = isRefreshing || isPending;
+
+  // Fetch API key options for the filter dropdown
+  useEffect(() => {
+    void (async () => {
+      try {
+        const entries = await apiKeyEntriesApi.list();
+        setApiKeyOptions(
+          entries
+            .filter((e) => e.id !== undefined && e.id > 0)
+            .map((e) => ({ id: e.id!, name: e.name || "" })),
+        );
+      } catch {
+        // silent - filter will just show "All"
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     void refreshData();
@@ -392,7 +412,7 @@ export function MonitorPage() {
       return acc + (apikeyMetric === "requests" ? item.requests : item.tokens);
     }, 0);
     const data = top.map((item) => ({
-      name: item.name || item.api_key.slice(0, 8) + "…",
+      name: item.name || `Key #${item.api_key_id}`,
       value: apikeyMetric === "requests" ? item.requests : item.tokens,
     }));
     if (otherValue > 0) {
@@ -585,8 +605,13 @@ export function MonitorPage() {
         t={t}
         timeRange={timeRange}
         setTimeRange={setTimeRange}
+        apiKeyOptions={apiKeyOptions}
         apiFilterInput={apiFilterInput}
-        setApiFilterInput={setApiFilterInput}
+        setApiFilterInput={(value) => {
+          setApiFilterInput(value);
+          // Apply filter immediately when selection changes
+          setApiFilter(value);
+        }}
         applyFilter={applyFilter}
         refreshData={() => void refreshData()}
         isLoading={isLoading}

@@ -18,11 +18,10 @@ export type RequestLogsRow = {
   id: string;
   timestamp: string;
   timestampMs: number;
-  apiKey: string;
+  apiKeyID: number;
   apiKeyName: string;
   isSystemCall: boolean;
   channelName: string;
-  maskedApiKey: string;
   model: string;
   failed: boolean;
   latencyText: string;
@@ -52,7 +51,7 @@ export const REQUEST_LOG_TIME_RANGES: readonly TimeRange[] = [
 export const SYSTEM_REQUEST_LOG_FILTER_VALUE = "__system__";
 
 export type RequestLogKeyOption = {
-  value: string;
+  value: string;  // "" for all, SYSTEM_REQUEST_LOG_FILTER_VALUE for system, String(id) for specific keys
   label: string;
   searchText?: string;
 };
@@ -87,16 +86,15 @@ export const formatOptionalRequestLogLatencyMs = (value: number): string => {
 };
 
 export const toRequestLogsRow = (item: UsageLogItem): RequestLogsRow => {
-  const isSystemCall = isSystemRequestLogKey(item.api_key, item.api_key_name);
+  const isSystemCall = item.api_key_id === 0;
   return {
     id: String(item.id),
     timestamp: item.timestamp,
     timestampMs: parseUsageTimestampMs(item.timestamp),
-    apiKey: item.api_key,
+    apiKeyID: item.api_key_id,
     apiKeyName: item.api_key_name || "",
     isSystemCall,
     channelName: item.channel_name || "",
-    maskedApiKey: maskRequestLogApiKey(item.api_key),
     model: item.model,
     failed: item.failed,
     latencyText: formatRequestLogLatencyMs(item.latency_ms),
@@ -111,45 +109,34 @@ export const toRequestLogsRow = (item: UsageLogItem): RequestLogsRow => {
 };
 
 export const isSystemRequestLogKey = (
-  apiKey: string,
-  apiKeyName?: string,
+  apiKeyID: number,
+  _apiKeyName?: string,
 ): boolean => {
-  if (String(apiKeyName || "").trim()) return false;
-  const trimmed = String(apiKey || "").trim();
-  if (!trimmed) return true;
-  return (
-    /^(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)\s+\//i.test(trimmed) ||
-    trimmed.startsWith("/")
-  );
+  return apiKeyID === 0;
 };
 
 export const buildRequestLogKeyOptions = (
-  apiKeys: string[],
-  apiKeyNames: Record<string, string>,
+  apiKeys: { id: number; name: string }[],
   labels: {
     allKeys: string;
     systemCall: string;
   },
 ): RequestLogKeyOption[] => {
   const options: RequestLogKeyOption[] = [{ value: "", label: labels.allKeys }];
-  let systemIncluded = false;
 
-  for (const key of apiKeys) {
-    const name = apiKeyNames[key];
-    if (isSystemRequestLogKey(key, name)) {
-      if (systemIncluded) continue;
-      options.push({
-        value: SYSTEM_REQUEST_LOG_FILTER_VALUE,
-        label: labels.systemCall,
-        searchText: labels.systemCall,
-      });
-      systemIncluded = true;
-      continue;
-    }
+  // Check if there are system requests (api_key_id === 0)
+  // Always add system option if there are any keys (system requests may exist)
+  options.push({
+    value: SYSTEM_REQUEST_LOG_FILTER_VALUE,
+    label: labels.systemCall,
+    searchText: labels.systemCall,
+  });
+
+  for (const item of apiKeys) {
     options.push({
-      value: key,
-      label: name || maskRequestLogApiKey(key),
-      searchText: `${name || ""} ${key}`,
+      value: String(item.id),
+      label: item.name || `Key #${item.id}`,
+      searchText: `${item.name || ""} ${item.id}`,
     });
   }
 

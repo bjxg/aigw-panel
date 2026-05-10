@@ -42,7 +42,7 @@ export function useApiKeyUsageView({
   const { t } = useTranslation();
   const { notify } = useToast();
 
-  const [usageViewKey, setUsageViewKey] = useState<string | null>(null);
+  const [usageViewKey, setUsageViewKey] = useState<number | null>(null);
   const [usageViewName, setUsageViewName] = useState("");
   const [usageLoading, setUsageLoading] = useState(false);
   const [usageRawItems, setUsageRawItems] = useState<UsageLogItem[]>([]);
@@ -127,7 +127,7 @@ export function useApiKeyUsageView({
           page,
           size,
           days: usageTimeRange,
-          api_key: usageViewKey,
+          api_key_id: usageViewKey ?? undefined,
           model: usageModelQuery || undefined,
           channel: channelQuery || undefined,
           status: usageStatusFilter || undefined,
@@ -181,7 +181,7 @@ export function useApiKeyUsageView({
   const handleViewUsage = useCallback(
     async (entry: ApiKeyEntry) => {
       resetUsageViewState();
-      setUsageViewKey(entry.key);
+      setUsageViewKey(entry.id ?? 0);
       setUsageViewName(entry.name || t("api_keys_page.unnamed"));
     },
     [resetUsageViewState, t],

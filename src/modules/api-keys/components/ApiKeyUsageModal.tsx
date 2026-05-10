@@ -18,7 +18,7 @@ export function ApiKeyUsageModal({
   open,
   onClose,
   usageViewName,
-  maskedKey,
+  usageKeyId,
   usageTotalCount,
   usageTimeRange,
   setUsageTimeRange,
@@ -47,7 +47,7 @@ export function ApiKeyUsageModal({
   open: boolean;
   onClose: () => void;
   usageViewName: string;
-  maskedKey: string;
+  usageKeyId: number;
   usageTotalCount: number;
   usageTimeRange: TimeRange;
   setUsageTimeRange: (value: TimeRange) => void;
@@ -83,7 +83,7 @@ export function ApiKeyUsageModal({
       description={
         open
           ? t("api_keys_page.usage_desc", {
-              key: maskedKey,
+              key: usageKeyId ? `Key #${usageKeyId}` : "",
               count: usageTotalCount,
             })
           : ""

@@ -1,12 +1,14 @@
-import { ChartSpline, Filter, RefreshCw, Search } from "lucide-react";
-import { TextInput } from "@/modules/ui/Input";
+import { ChartSpline, RefreshCw } from "lucide-react";
+import { SearchableSelect } from "@/modules/ui/SearchableSelect";
 import { TimeRangeSelector } from "@/modules/monitor/MonitorPagePieces";
 import type { TimeRange } from "@/modules/monitor/monitor-constants";
+import type { APIKeyFilterItem } from "@/lib/http/apis/usage";
 
 export function MonitorToolbarSection({
   t,
   timeRange,
   setTimeRange,
+  apiKeyOptions,
   apiFilterInput,
   setApiFilterInput,
   applyFilter,
@@ -17,13 +19,23 @@ export function MonitorToolbarSection({
   t: (key: string, options?: Record<string, unknown>) => string;
   timeRange: TimeRange;
   setTimeRange: (value: TimeRange) => void;
-  apiFilterInput: string;
-  setApiFilterInput: (value: string) => void;
+  apiKeyOptions: APIKeyFilterItem[];
+  apiFilterInput: number;
+  setApiFilterInput: (value: number) => void;
   applyFilter: () => void;
   refreshData: () => void;
   isLoading: boolean;
   error: string | null;
 }) {
+  const selectOptions = [
+    { value: "0", label: t("monitor.all_keys") },
+    ...apiKeyOptions.map((item) => ({
+      value: String(item.id),
+      label: item.name || `Key #${item.id}`,
+      searchText: `${item.name || ""} ${item.id}`,
+    })),
+  ];
+
   return (
     <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgb(15_23_42_/_0.035)] dark:border-white/[0.06] dark:bg-neutral-950/70 dark:shadow-[0_1px_2px_rgb(0_0_0_/_0.22)]">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -35,27 +47,18 @@ export function MonitorToolbarSection({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
-          <TextInput
-            value={apiFilterInput}
-            onChange={(event) => setApiFilterInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                applyFilter();
-              }
+          <SearchableSelect
+            value={String(apiFilterInput)}
+            onChange={(value) => {
+              const numValue = Number(value);
+              setApiFilterInput(numValue);
             }}
-            startAdornment={<Search size={14} className="text-[#71717A] dark:text-[#A1A1AA]" />}
-            className="w-44"
-            placeholder={t("monitor.filter_placeholder")}
+            options={selectOptions}
+            placeholder={t("monitor.all_keys")}
+            searchPlaceholder={t("monitor.search_keys")}
+            aria-label={t("monitor.filter_key")}
+            className="w-full sm:w-auto"
           />
-          <button
-            type="button"
-            onClick={applyFilter}
-            className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-neutral-800 dark:bg-neutral-950/60 dark:text-white/80 dark:hover:bg-white/10"
-          >
-            <Filter size={14} />
-            {t("monitor.apply")}
-          </button>
           <button
             type="button"
             onClick={refreshData}

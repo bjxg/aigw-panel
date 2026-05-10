@@ -16,6 +16,7 @@ import {
   RequestLogsPaginationBar,
   RequestLogsTimeRangeSelector,
   toRequestLogsRow,
+  SYSTEM_REQUEST_LOG_FILTER_VALUE,
   type RequestLogsRow as LogRow,
   type TimeRange,
 } from "@/modules/monitor/requestLogsShared";
@@ -70,13 +71,11 @@ export function RequestLogsPage() {
 
   // Backend-provided metadata
   const [filterOptions, setFilterOptions] = useState<{
-    api_keys: string[];
-    api_key_names: Record<string, string>;
+    api_keys: { id: number; name: string }[];
     models: string[];
     channels: string[];
   }>({
     api_keys: [],
-    api_key_names: {},
     models: [],
     channels: [],
   });
@@ -104,11 +103,25 @@ export function RequestLogsPage() {
       setLoading(true);
 
       try {
+        // Convert apiQuery string to api_key_id parameter:
+        // "" → no filter, SYSTEM_REQUEST_LOG_FILTER_VALUE → -1, numeric string → that number
+        let apiKeyIdParam: number | undefined;
+        if (apiQuery === "") {
+          apiKeyIdParam = undefined;
+        } else if (apiQuery === SYSTEM_REQUEST_LOG_FILTER_VALUE) {
+          apiKeyIdParam = -1;
+        } else {
+          const parsed = Number(apiQuery);
+          if (Number.isFinite(parsed) && parsed > 0) {
+            apiKeyIdParam = parsed;
+          }
+        }
+
         const resp: UsageLogsResponse = await usageApi.getUsageLogs({
           page,
           size,
           days: timeRange,
-          api_key: apiQuery || undefined,
+          api_key_id: apiKeyIdParam,
           model: modelQuery || undefined,
           channel: channelQuery || undefined,
           status: statusFilter || undefined,
@@ -121,12 +134,6 @@ export function RequestLogsPage() {
           resp.filters && typeof resp.filters === "object" ? (resp.filters as any) : null;
         setFilterOptions({
           api_keys: Array.isArray(filtersCandidate?.api_keys) ? filtersCandidate.api_keys : [],
-          api_key_names:
-            filtersCandidate?.api_key_names &&
-            typeof filtersCandidate.api_key_names === "object" &&
-            !Array.isArray(filtersCandidate.api_key_names)
-              ? (filtersCandidate.api_key_names as Record<string, string>)
-              : {},
           models: Array.isArray(filtersCandidate?.models) ? filtersCandidate.models : [],
           channels: Array.isArray(filtersCandidate?.channels) ? filtersCandidate.channels : [],
         });
@@ -177,11 +184,11 @@ export function RequestLogsPage() {
 
   // Build options from backend filter data
   const keyOptions = useMemo(() => {
-    return buildRequestLogKeyOptions(filterOptions.api_keys, filterOptions.api_key_names ?? {}, {
+    return buildRequestLogKeyOptions(filterOptions.api_keys, {
       allKeys: t("request_logs.all_keys"),
       systemCall: t("request_logs.system_call"),
     });
-  }, [filterOptions.api_keys, filterOptions.api_key_names, t]);
+  }, [filterOptions.api_keys, t]);
 
   const modelOptions = useMemo(() => {
     return [

@@ -64,6 +64,7 @@ const writeStoredLookupKey = (value: string): void => {
 const readLegacyLookupKeyFromUrl = (): string => {
   try {
     const url = new URL(window.location.href);
+    // Support legacy URL params - api_key or key
     return (url.searchParams.get("api_key") || url.searchParams.get("key") || "").trim();
   } catch {
     return "";

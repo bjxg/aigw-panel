@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/http/client";
 
 export interface ApiKeyEntry {
+  id?: number;
   key: string;
   name?: string;
   disabled?: boolean;
@@ -44,9 +45,11 @@ export const apiKeyEntriesApi = {
   update: (payload: { index?: number; match?: string; value: Partial<ApiKeyEntry> }) =>
     apiClient.patch("/api-key-entries", payload),
 
-  delete: (params: { index?: number; key?: string; deleteLogs?: boolean }) => {
+  delete: (params: { id?: number; index?: number; key?: string; deleteLogs?: boolean }) => {
     const query = new URLSearchParams();
-    if (params.key) {
+    if (params.id !== undefined && params.id > 0) {
+      query.set("id", String(params.id));
+    } else if (params.key) {
       query.set("key", params.key);
     } else if (params.index !== undefined) {
       query.set("index", String(params.index));

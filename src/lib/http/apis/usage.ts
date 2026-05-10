@@ -129,9 +129,9 @@ export const usageApi = {
     };
   },
 
-  async getChartData(days = 7, apiKey = ""): Promise<ChartDataResponse> {
+  async getChartData(days = 7, apiKeyID = 0): Promise<ChartDataResponse> {
     const qs = new URLSearchParams({ days: String(days) });
-    if (apiKey && apiKey !== "all") qs.set("api_key", apiKey);
+    if (apiKeyID > 0) qs.set("api_key_id", String(apiKeyID));
     const resp = await apiClient.get<ChartDataResponse>(`/usage/chart-data?${qs.toString()}`);
     return {
       daily_series: Array.isArray(resp?.daily_series) ? resp.daily_series : [],
@@ -142,9 +142,9 @@ export const usageApi = {
     };
   },
 
-  async getEntityStats(days = 7, apiKey = ""): Promise<EntityStatsResponse> {
+  async getEntityStats(days = 7, apiKeyID = 0): Promise<EntityStatsResponse> {
     const qs = new URLSearchParams({ days: String(days) });
-    if (apiKey && apiKey !== "all") qs.set("api_key", apiKey);
+    if (apiKeyID > 0) qs.set("api_key_id", String(apiKeyID));
     const resp = await apiClient.get<EntityStatsResponse>(`/usage/entity-stats?${qs.toString()}`);
     return {
       source: Array.isArray(resp?.source) ? resp.source : [],
@@ -200,7 +200,7 @@ export const usageApi = {
     page?: number;
     size?: number;
     days?: number;
-    api_key?: string;
+    api_key_id?: number;
     model?: string;
     channel?: string;
     status?: string;
@@ -209,7 +209,7 @@ export const usageApi = {
     if (params.page) qs.set("page", String(params.page));
     if (params.size) qs.set("size", String(params.size));
     if (params.days) qs.set("days", String(params.days));
-    if (params.api_key) qs.set("api_key", params.api_key);
+    if (params.api_key_id) qs.set("api_key_id", String(params.api_key_id));
     if (params.model) qs.set("model", params.model);
     if (params.channel) qs.set("channel", params.channel);
     if (params.status) qs.set("status", params.status);
@@ -222,7 +222,6 @@ export const usageApi = {
       size: resp?.size ?? params.size ?? 50,
       filters: {
         api_keys: Array.isArray(resp?.filters?.api_keys) ? resp.filters.api_keys : [],
-        api_key_names: resp?.filters?.api_key_names ?? {},
         models: Array.isArray(resp?.filters?.models) ? resp.filters.models : [],
         channels: Array.isArray(resp?.filters?.channels) ? resp.filters.channels : [],
       },
@@ -343,7 +342,7 @@ export interface DashboardThroughputPoint {
 export interface UsageLogItem {
   id: number;
   timestamp: string;
-  api_key: string;
+  api_key_id: number;
   api_key_name: string;
   model: string;
   source: string;
@@ -361,14 +360,18 @@ export interface UsageLogItem {
   has_content: boolean;
 }
 
+export interface APIKeyFilterItem {
+  id: number;
+  name: string;
+}
+
 export interface UsageLogsResponse {
   items: UsageLogItem[];
   total: number;
   page: number;
   size: number;
   filters: {
-    api_keys: string[];
-    api_key_names: Record<string, string>;
+    api_keys: APIKeyFilterItem[];
     models: string[];
     channels: string[];
   };

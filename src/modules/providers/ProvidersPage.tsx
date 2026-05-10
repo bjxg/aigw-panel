@@ -150,7 +150,7 @@ export function ProvidersPage() {
 
   const loadUsage = useCallback(async () => {
     try {
-      const usage = await usageApi.getEntityStats(30, "all").catch(() => null);
+      const usage = await usageApi.getEntityStats(30, 0).catch(() => null);
       if (usage?.source) {
         const stats: Record<string, KeyStatBucket> = {};
         usage.source.forEach((pt) => {
