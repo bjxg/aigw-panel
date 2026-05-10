@@ -18,7 +18,9 @@ function spaFallbackForManage(): Plugin {
         const url = req.url?.split("?")[0] ?? "";
         if (
           url.startsWith("/manage/") &&
-          !url.includes(".") // skip assets like .js, .css, .svg
+          !url.includes(".") && // skip assets like .js, .css, .svg
+          !url.startsWith("/manage/@") && // skip Vite internals (@vite/client etc.)
+          !url.startsWith("/manage/src/") // skip source module requests
         ) {
           req.url = "/manage/manage.html";
         }
