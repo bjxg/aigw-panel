@@ -89,7 +89,7 @@ export function useApiKeyUsageView({
   );
 
   const usageRows = useMemo<RequestLogsRow[]>(
-    () => (usageRawItems ?? []).map((item) => toRequestLogsRow(item)),
+    () => (usageRawItems ?? []).map((item) => toRequestLogsRow(item, undefined)),
     [usageRawItems],
   );
 

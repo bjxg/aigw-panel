@@ -2,7 +2,8 @@ import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Filter, RefreshCw, ScrollText } from "lucide-react";
 import { usageApi } from "@/lib/http/apis";
-import type { UsageLogItem, UsageLogsResponse } from "@/lib/http/apis/usage";
+import type { UsageLogItem, UsageLogsResponse, UserFilterItem } from "@/lib/http/apis/usage";
+import { usersApi, type User } from "@/lib/http/apis/users";
 import { useToast } from "@/modules/ui/ToastProvider";
 import { Select } from "@/modules/ui/Select";
 import { SearchableSelect } from "@/modules/ui/SearchableSelect";
@@ -74,10 +75,12 @@ export function RequestLogsPage() {
     api_keys: { id: number; name: string }[];
     models: string[];
     channels: string[];
+    users: UserFilterItem[];
   }>({
     api_keys: [],
     models: [],
     channels: [],
+    users: [],
   });
   const [stats, setStats] = useState<{
     total: number;
@@ -91,7 +94,22 @@ export function RequestLogsPage() {
   const [apiQuery, setApiQuery] = useState("");
   const [modelQuery, setModelQuery] = useState("");
   const [channelQuery, setChannelQuery] = useState("");
+  const [userQuery, setUserQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("");
+
+  // Users for local mapping (user_id → name)
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    usersApi.list({ page: 1, page_size: 500 }).then((res) => {
+      setAllUsers(res.users ?? []);
+    }).catch(() => {/* silent */});
+  }, []);
+
+  const userNameById = useMemo(
+    () => new Map<number, string>(allUsers.map((u) => [u.id, u.name])),
+    [allUsers],
+  );
 
   const fetchInFlightRef = useRef(false);
 
@@ -117,6 +135,15 @@ export function RequestLogsPage() {
           }
         }
 
+        // Convert userQuery string to user_id parameter
+        let userIdParam: number | undefined;
+        if (userQuery) {
+          const parsed = Number(userQuery);
+          if (Number.isFinite(parsed) && parsed > 0) {
+            userIdParam = parsed;
+          }
+        }
+
         const resp: UsageLogsResponse = await usageApi.getUsageLogs({
           page,
           size,
@@ -125,6 +152,7 @@ export function RequestLogsPage() {
           model: modelQuery || undefined,
           channel: channelQuery || undefined,
           status: statusFilter || undefined,
+          user_id: userIdParam,
         });
 
         setRawItems(resp.items ?? []);
@@ -136,6 +164,7 @@ export function RequestLogsPage() {
           api_keys: Array.isArray(filtersCandidate?.api_keys) ? filtersCandidate.api_keys : [],
           models: Array.isArray(filtersCandidate?.models) ? filtersCandidate.models : [],
           channels: Array.isArray(filtersCandidate?.channels) ? filtersCandidate.channels : [],
+          users: Array.isArray(filtersCandidate?.users) ? filtersCandidate.users : [],
         });
         setStats({
           ...DEFAULT_LOG_STATS,
@@ -150,13 +179,13 @@ export function RequestLogsPage() {
         setLoading(false);
       }
     },
-    [timeRange, apiQuery, modelQuery, channelQuery, statusFilter, notify, t],
+    [timeRange, apiQuery, modelQuery, channelQuery, userQuery, statusFilter, notify, t],
   );
 
   // Derive display rows from raw items
   const rows = useMemo<LogRow[]>(
-    () => (rawItems ?? []).map((item) => toRequestLogsRow(item)),
-    [rawItems],
+    () => (rawItems ?? []).map((item) => toRequestLogsRow(item, userNameById)),
+    [rawItems, userNameById],
   );
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -180,7 +209,7 @@ export function RequestLogsPage() {
   // Fetch page 1 when filters change
   useEffect(() => {
     fetchLogs(1, pageSize);
-  }, [timeRange, apiQuery, modelQuery, channelQuery, statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [timeRange, apiQuery, modelQuery, channelQuery, userQuery, statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Build options from backend filter data
   const keyOptions = useMemo(() => {
@@ -203,6 +232,17 @@ export function RequestLogsPage() {
       ...filterOptions.channels.map((ch) => ({ value: ch, label: ch })),
     ];
   }, [filterOptions.channels, t]);
+
+  const userOptions = useMemo(() => {
+    return [
+      { value: "", label: t("request_logs.all_users") },
+      ...filterOptions.users.map((u) => ({
+        value: String(u.id),
+        label: u.name,
+        searchText: `${u.name} ${u.id}`,
+      })),
+    ];
+  }, [filterOptions.users, t]);
 
   const lastUpdatedText = useMemo(() => {
     if (loading) return t("request_logs.refreshing");
@@ -272,6 +312,15 @@ export function RequestLogsPage() {
                 placeholder={t("request_logs.all_channels_placeholder")}
                 searchPlaceholder={t("request_logs.search_channels")}
                 aria-label={t("request_logs.filter_channel")}
+                className="w-full sm:w-auto"
+              />
+              <SearchableSelect
+                value={userQuery}
+                onChange={setUserQuery}
+                options={userOptions}
+                placeholder={t("request_logs.all_users_placeholder")}
+                searchPlaceholder={t("request_logs.search_users")}
+                aria-label={t("request_logs.filter_user")}
                 className="w-full sm:w-auto"
               />
               <Select

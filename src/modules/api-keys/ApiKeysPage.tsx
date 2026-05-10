@@ -10,6 +10,7 @@ import {
   type ApiKeyPermissionProfile,
 } from "@/lib/http/apis/api-key-permission-profiles";
 import type { ChannelGroupItem } from "@/lib/http/apis/channel-groups";
+import { usersApi, type User } from "@/lib/http/apis/users";
 import { detectApiBaseFromLocation } from "@/lib/connection";
 import { useOptionalAuth } from "@/modules/auth/AuthProvider";
 import {
@@ -46,6 +47,7 @@ import {
 import { LogContentModal } from "@/modules/monitor/LogContentModal";
 import { ErrorDetailModal } from "@/modules/monitor/ErrorDetailModal";
 import type { ApiKeyFormValues } from "@/modules/api-keys/types";
+import type { SearchableSelectOption } from "@/modules/ui/SearchableSelect";
 
 function normalizeRoutePath(path: string): string {
   const trimmed = String(path ?? "").trim();
@@ -111,6 +113,7 @@ export function ApiKeysPage() {
   const [ccSwitchImportModelsLoading, setCcSwitchImportModelsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [permissionProfiles, setPermissionProfiles] = useState<ApiKeyPermissionProfile[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [form, setForm] = useState<ApiKeyFormValues>(() => makeEmptyApiKeyForm());
   const { channelGroupItems, channelGroupByName, fetchModelOptions, refreshPermissionOptions } =
     useApiKeyPermissionOptions();
@@ -157,12 +160,14 @@ export function ApiKeysPage() {
   const loadEntries = useCallback(async () => {
     setLoading(true);
     try {
-      const [entriesData, legacyKeys, profilesData] = await Promise.all([
+      const [entriesData, legacyKeys, profilesData, usersData] = await Promise.all([
         apiKeyEntriesApi.list(),
         apiKeysApi.list().catch(() => [] as string[]),
         apiKeyPermissionProfilesApi.list().catch(() => [] as ApiKeyPermissionProfile[]),
+        usersApi.list({ page: 1, page_size: 500 }).catch(() => ({ users: [] as User[], total: 0 })),
       ]);
       setPermissionProfiles(profilesData);
+      setUsers(usersData.users ?? []);
 
       // Auto-migrate: old api-keys not in api-key-entries get added as unnamed entries
       const entryKeySet = new Set(entriesData.map((e) => e.key));
@@ -231,6 +236,23 @@ export function ApiKeysPage() {
     return options;
   }, [form.permissionProfileId, permissionProfiles, t]);
 
+  const userOptions = useMemo<SearchableSelectOption[]>(
+    () => [
+      { value: "", label: t("api_keys_page.form_user_unassigned") },
+      ...users.map((u) => ({
+        value: String(u.id),
+        label: u.name,
+        searchText: `${u.name} ${u.username ?? ""} ${u.email ?? ""}`.trim(),
+      })),
+    ],
+    [users, t],
+  );
+
+  const userNameById = useMemo(
+    () => new Map<number, string>(users.map((u) => [u.id, u.name])),
+    [users],
+  );
+
   const selectedPermissionProfile = (profileId: string) =>
     profileId ? (permissionProfileById.get(profileId) ?? null) : null;
 
@@ -281,6 +303,7 @@ export function ApiKeysPage() {
       const newEntry: ApiKeyEntry = {
         key: form.key.trim(),
         name: form.name.trim(),
+        ...(form.userId ? { "user-id": Number(form.userId) } : {}),
         "created-at": new Date().toISOString(),
       };
       const profiledEntry = applyApiKeyPermissionProfile(
@@ -308,6 +331,7 @@ export function ApiKeysPage() {
     const next = {
       name: entry.name || "",
       key: entry.key,
+      userId: entry["user-id"] ? String(entry["user-id"]) : "",
       permissionProfileId: resolveEntryPermissionProfileId(entry, permissionProfiles),
       dailyLimit: entry["daily-limit"]?.toString() || "",
       totalQuota: entry["total-quota"]?.toString() || "",
@@ -340,6 +364,7 @@ export function ApiKeysPage() {
         value: {
           ...(newKey !== originalKey ? { key: newKey } : {}),
           name: form.name.trim(),
+          ...(form.userId ? { "user-id": Number(form.userId) } : { "user-id": null }),
           ...(form.permissionProfileId === CUSTOM_PERMISSION_PROFILE_ID
             ? {
                 "permission-profile-id": entries[editIndex]["permission-profile-id"] ?? "",
@@ -580,6 +605,7 @@ export function ApiKeysPage() {
     () =>
       createApiKeyColumns({
         t,
+        userNameById,
         onToggleDisable: (index) => void handleToggleDisable(index),
         onViewUsage: handleViewUsage,
         onCopy: (key) => void handleCopy(key),
@@ -595,6 +621,7 @@ export function ApiKeysPage() {
       handleOpenEdit,
       handleOpenDelete,
       t,
+      userNameById,
     ],
   );
 
@@ -654,6 +681,7 @@ export function ApiKeysPage() {
         form={form}
         setForm={setForm}
         permissionProfileOptions={permissionProfileOptions}
+        userOptions={userOptions}
         onClose={() => setShowCreate(false)}
         onSubmit={handleCreate}
         regenerateKey={() => setForm((prev) => ({ ...prev, key: generateApiKey() }))}
@@ -667,6 +695,7 @@ export function ApiKeysPage() {
         form={form}
         setForm={setForm}
         permissionProfileOptions={permissionProfileOptions}
+        userOptions={userOptions}
         onClose={() => setEditIndex(null)}
         onSubmit={handleEdit}
         regenerateKey={() => setForm((prev) => ({ ...prev, key: generateApiKey() }))}

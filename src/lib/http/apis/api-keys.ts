@@ -4,6 +4,7 @@ export interface ApiKeyEntry {
   id?: number;
   key: string;
   name?: string;
+  "user-id"?: number;
   disabled?: boolean;
   "daily-limit"?: number;
   "total-quota"?: number;

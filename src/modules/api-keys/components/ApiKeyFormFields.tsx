@@ -2,6 +2,7 @@ import { RefreshCw } from "lucide-react";
 import { Button } from "@/modules/ui/Button";
 import { TextInput } from "@/modules/ui/Input";
 import { Select, type SelectOption } from "@/modules/ui/Select";
+import { SearchableSelect, type SearchableSelectOption } from "@/modules/ui/SearchableSelect";
 import type { ApiKeyFormValues } from "@/modules/api-keys/types";
 
 export function ApiKeyFormFields({
@@ -10,6 +11,7 @@ export function ApiKeyFormFields({
   setForm,
   editMode,
   permissionProfileOptions,
+  userOptions,
   regenerateKey,
 }: {
   t: (key: string, options?: Record<string, unknown>) => string;
@@ -17,10 +19,51 @@ export function ApiKeyFormFields({
   setForm: React.Dispatch<React.SetStateAction<ApiKeyFormValues>>;
   editMode: boolean;
   permissionProfileOptions: SelectOption[];
+  userOptions: SearchableSelectOption[];
   regenerateKey: () => void;
 }) {
   return (
     <div className="space-y-4">
+      <div>
+        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-white/80">
+          {t("api_keys_page.form_user_label")}
+        </label>
+        {editMode ? (
+          <TextInput
+            type="text"
+            value={
+              String(userOptions.find((o) => o.value === form.userId)?.label ?? "")
+            }
+            readOnly
+            className="bg-slate-50 dark:bg-neutral-800/50"
+          />
+        ) : (
+          <SearchableSelect
+            value={form.userId}
+            onChange={(value) => {
+              setForm((prev) => {
+                const selectedUser = userOptions.find((o) => o.value === value);
+                const autoName = selectedUser && typeof selectedUser.label === "string" ? selectedUser.label : "";
+                return {
+                  ...prev,
+                  userId: value,
+                  ...(prev.name.trim() === "" && autoName ? { name: autoName } : {}),
+                };
+              });
+            }}
+            options={userOptions}
+            placeholder={t("api_keys_page.form_user_placeholder")}
+            searchPlaceholder={t("api_keys_page.form_user_search")}
+            aria-label={t("api_keys_page.form_user_label")}
+          />
+        )}
+        {editMode && (
+          <p className="mt-1 text-xs text-slate-400 dark:text-white/40">
+            {t("api_keys_page.form_user_readonly_hint")}
+          </p>
+        )}
+      </div>
+
       <div>
         <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-white/80">
           {t("api_keys_page.form_name_label")} <span className="text-rose-500">*</span>

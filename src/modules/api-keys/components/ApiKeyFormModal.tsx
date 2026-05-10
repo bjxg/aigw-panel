@@ -3,6 +3,7 @@ import { Modal } from "@/modules/ui/Modal";
 import { ApiKeyFormFields } from "@/modules/api-keys/components/ApiKeyFormFields";
 import type { ApiKeyFormValues } from "@/modules/api-keys/types";
 import type { SelectOption } from "@/modules/ui/Select";
+import type { SearchableSelectOption } from "@/modules/ui/SearchableSelect";
 
 export function ApiKeyFormModal({
   t,
@@ -12,6 +13,7 @@ export function ApiKeyFormModal({
   form,
   setForm,
   permissionProfileOptions,
+  userOptions,
   onClose,
   onSubmit,
   regenerateKey,
@@ -23,6 +25,7 @@ export function ApiKeyFormModal({
   form: ApiKeyFormValues;
   setForm: React.Dispatch<React.SetStateAction<ApiKeyFormValues>>;
   permissionProfileOptions: SelectOption[];
+  userOptions: SearchableSelectOption[];
   onClose: () => void;
   onSubmit: () => Promise<void>;
   regenerateKey: () => void;
@@ -56,6 +59,7 @@ export function ApiKeyFormModal({
         setForm={setForm}
         editMode={editMode}
         permissionProfileOptions={permissionProfileOptions}
+        userOptions={userOptions}
         regenerateKey={regenerateKey}
       />
     </Modal>

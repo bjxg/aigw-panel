@@ -64,6 +64,7 @@ describe("ApiKeyColumns", () => {
     };
     const columns = createApiKeyColumns({
       t,
+      userNameById: new Map<number, string>(),
       onCopy: vi.fn(),
       onDelete: vi.fn(),
       onEdit: vi.fn(),
@@ -89,6 +90,7 @@ describe("ApiKeyColumns", () => {
   test("keeps the API key column at the wider fixed width", () => {
     const columns = createApiKeyColumns({
       t,
+      userNameById: new Map<number, string>(),
       onCopy: vi.fn(),
       onDelete: vi.fn(),
       onEdit: vi.fn(),
@@ -110,6 +112,7 @@ describe("ApiKeyColumns", () => {
     };
     const columns = createApiKeyColumns({
       t,
+      userNameById: new Map<number, string>(),
       onCopy: vi.fn(),
       onDelete: vi.fn(),
       onEdit: vi.fn(),

@@ -96,6 +96,7 @@ export const usageApi = {
     model?: string;
     channel?: string;
     status?: string;
+    user_id?: number;
   }): Promise<UsageLogsResponse> {
     const qs = new URLSearchParams();
     if (params.page) qs.set("page", String(params.page));
@@ -105,6 +106,7 @@ export const usageApi = {
     if (params.model) qs.set("model", params.model);
     if (params.channel) qs.set("channel", params.channel);
     if (params.status) qs.set("status", params.status);
+    if (params.user_id) qs.set("user_id", String(params.user_id));
     const query = qs.toString();
     const resp = await apiClient.get<UsageLogsResponse>(`/usage/logs${query ? `?${query}` : ""}`);
     return {
@@ -116,6 +118,7 @@ export const usageApi = {
         api_keys: Array.isArray(resp?.filters?.api_keys) ? resp.filters.api_keys : [],
         models: Array.isArray(resp?.filters?.models) ? resp.filters.models : [],
         channels: Array.isArray(resp?.filters?.channels) ? resp.filters.channels : [],
+        users: Array.isArray(resp?.filters?.users) ? resp.filters.users : [],
       },
       stats: {
         total: resp?.stats?.total ?? 0,
@@ -236,6 +239,7 @@ export interface UsageLogItem {
   timestamp: string;
   api_key_id: number;
   api_key_name: string;
+  user_id?: number;
   model: string;
   source: string;
   channel_name: string;
@@ -257,6 +261,11 @@ export interface APIKeyFilterItem {
   name: string;
 }
 
+export interface UserFilterItem {
+  id: number;
+  name: string;
+}
+
 export interface UsageLogsResponse {
   items: UsageLogItem[];
   total: number;
@@ -266,6 +275,7 @@ export interface UsageLogsResponse {
     api_keys: APIKeyFilterItem[];
     models: string[];
     channels: string[];
+    users: UserFilterItem[];
   };
   stats: {
     total: number;

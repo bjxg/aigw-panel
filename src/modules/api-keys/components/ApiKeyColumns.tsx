@@ -23,6 +23,7 @@ import type { VirtualTableColumn } from "@/modules/ui/VirtualTable";
 
 type CreateApiKeyColumnsOptions = {
   t: TFunction;
+  userNameById: Map<number, string>;
   onToggleDisable: (index: number) => void;
   onViewUsage: (entry: ApiKeyEntry) => void;
   onCopy: (key: string) => void;
@@ -33,6 +34,7 @@ type CreateApiKeyColumnsOptions = {
 
 export const createApiKeyColumns = ({
   t,
+  userNameById,
   onToggleDisable,
   onViewUsage,
   onCopy,
@@ -79,6 +81,22 @@ export const createApiKeyColumns = ({
         </span>
       </OverflowTooltip>
     ),
+  },
+  {
+    key: "user",
+    label: t("api_keys_page.col_user"),
+    width: "w-[100px] min-w-[100px]",
+    cellClassName: "text-slate-700 dark:text-white/70",
+    render: (row) => {
+      const uid = row["user-id"];
+      if (!uid) return <span className="text-slate-400 dark:text-white/30">—</span>;
+      const name = userNameById.get(uid);
+      return (
+        <OverflowTooltip content={name ?? String(uid)} className="block min-w-0">
+          <span className="block min-w-0 truncate">{name ?? String(uid)}</span>
+        </OverflowTooltip>
+      );
+    },
   },
   {
     key: "key",

@@ -20,6 +20,8 @@ export type RequestLogsRow = {
   timestampMs: number;
   apiKeyID: number;
   apiKeyName: string;
+  userId: number;
+  userName: string;
   isSystemCall: boolean;
   channelName: string;
   model: string;
@@ -85,14 +87,20 @@ export const formatOptionalRequestLogLatencyMs = (value: number): string => {
   return formatRequestLogLatencyMs(value);
 };
 
-export const toRequestLogsRow = (item: UsageLogItem): RequestLogsRow => {
+export const toRequestLogsRow = (
+  item: UsageLogItem,
+  userNameById?: Map<number, string>,
+): RequestLogsRow => {
   const isSystemCall = item.api_key_id === 0;
+  const userId = item.user_id ?? 0;
   return {
     id: String(item.id),
     timestamp: item.timestamp,
     timestampMs: parseUsageTimestampMs(item.timestamp),
     apiKeyID: item.api_key_id,
     apiKeyName: item.api_key_name || "",
+    userId,
+    userName: userId && userNameById ? (userNameById.get(userId) ?? "") : "",
     isSystemCall,
     channelName: item.channel_name || "",
     model: item.model,
@@ -230,6 +238,21 @@ export function buildRequestLogsColumns(
           </span>
         </OverflowTooltip>
       ),
+    },
+    {
+      key: "userName",
+      label: t("request_logs.col_user"),
+      width: "w-28",
+      render: (row) =>
+        row.userName ? (
+          <OverflowTooltip content={row.userName} className="block min-w-0">
+            <span className="block min-w-0 truncate text-xs font-medium text-sky-600 dark:text-sky-400">
+              {row.userName}
+            </span>
+          </OverflowTooltip>
+        ) : (
+          <span className="text-slate-400 dark:text-white/30">—</span>
+        ),
     },
     {
       key: "model",
