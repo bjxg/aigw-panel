@@ -28,6 +28,7 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/modules/auth/AuthProvider";
 import { PageBackground } from "@/modules/ui/PageBackground";
@@ -52,6 +53,7 @@ const NAV_ITEMS = [
   { to: "/monitor", i18nKey: "shell.nav_monitor", icon: Activity },
   { to: "/monitor/request-logs", i18nKey: "shell.nav_request_logs", icon: ScrollText },
   { to: "/ai-providers", i18nKey: "shell.nav_ai_providers", icon: Bot },
+  { to: "/users", i18nKey: "shell.nav_users", icon: Users },
   { to: "/api-keys", i18nKey: "shell.nav_api_keys", icon: Sparkles },
   { to: "/api-key-permissions", i18nKey: "shell.nav_api_key_permissions", icon: ShieldCheck },
   {
@@ -78,6 +80,7 @@ const getPageTitleKey = (pathname: string): string => {
   if (pathname.startsWith("/monitor/request-logs")) return "shell.nav_request_logs";
   if (pathname.startsWith("/monitor")) return "shell.nav_monitor";
   if (pathname.startsWith("/ai-providers")) return "shell.nav_ai_providers";
+  if (pathname.startsWith("/users")) return "shell.page_users";
   if (pathname.startsWith("/api-keys")) return "shell.page_api_keys";
   if (
     pathname.startsWith("/api-key-permissions") ||

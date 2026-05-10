@@ -36,6 +36,9 @@ const SystemPage = lazy(() =>
 const ApiKeysPage = lazy(() =>
   import("@/modules/api-keys/ApiKeysPage").then((m) => ({ default: m.ApiKeysPage })),
 );
+const UsersPage = lazy(() =>
+  import("@/modules/users/UsersPage").then((m) => ({ default: m.UsersPage })),
+);
 const ApiKeyPermissionsPage = lazy(() =>
   import("@/modules/api-key-permissions/ApiKeyPermissionsPage").then((m) => ({
     default: m.ApiKeyPermissionsPage,
@@ -101,6 +104,7 @@ export function AppRouter() {
                             <Route path="/logs" element={<LogsPage />} />
                             <Route path="/system" element={<SystemPage />} />
                             <Route path="/settings" element={<Navigate to="/config" replace />} />
+                            <Route path="/users" element={<UsersPage />} />
                             <Route path="/api-keys" element={<ApiKeysPage />} />
                             <Route
                               path="/api-key-permissions"

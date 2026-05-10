@@ -5,9 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
-  type PointerEvent as ReactPointerEvent,
   type ReactNode,
-  type WheelEvent as ReactWheelEvent,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { TableCellOverflowTooltip } from "@/modules/ui/TableCellOverflowTooltip";
@@ -251,7 +249,7 @@ export function VirtualTable<T>({
     }
   }, [updateScrollMetrics]);
 
-  const onWheelCapture = useCallback((e: ReactWheelEvent<HTMLDivElement>) => {
+  const onWheelCapture = useCallback((e: WheelEvent) => {
     const el = containerRef.current;
     if (!el) return;
 
@@ -443,6 +441,14 @@ export function VirtualTable<T>({
     minWidth,
   ]);
 
+  // Register non-passive wheel listener so preventDefault() works without warning
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", onWheelCapture, { passive: false });
+    return () => el.removeEventListener("wheel", onWheelCapture);
+  }, [onWheelCapture]);
+
   // Cleanup rAF
   useEffect(() => {
     return () => {
@@ -553,7 +559,6 @@ export function VirtualTable<T>({
       <div
         ref={containerRef}
         onScroll={onScroll}
-        onWheelCapture={onWheelCapture}
         tabIndex={0}
         data-scrollbar-visibility="hover"
         className="relative z-10 col-start-1 row-start-1 h-full min-h-0 table-scrollbar overflow-auto overscroll-x-none overscroll-y-none rounded-tl-xl"
