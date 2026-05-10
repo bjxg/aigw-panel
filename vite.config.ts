@@ -1,12 +1,36 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, type Plugin } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 import { panelMetadataPlugin } from "./src/build/panelMetadata";
 
+/**
+ * Vite dev-server SPA fallback for multi-page apps.
+ * Paths under /manage/ (the base URL) must resolve to manage.html
+ * so that BrowserRouter + basename="/manage" is loaded instead of
+ * the default index.html (which uses HashRouter).
+ */
+function spaFallbackForManage(): Plugin {
+  return {
+    name: "spa-fallback-manage",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = req.url?.split("?")[0] ?? "";
+        if (
+          url.startsWith("/manage/") &&
+          !url.includes(".") // skip assets like .js, .css, .svg
+        ) {
+          req.url = "/manage/manage.html";
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
   base: "/manage/",
-  plugins: [react(), tailwindcss(), panelMetadataPlugin()],
+  plugins: [react(), tailwindcss(), panelMetadataPlugin(), spaFallbackForManage()],
   define: {
     // Prefer CI-provided build version (branch+sha/tag) so UI version auto-refreshes on deploy.
     __APP_VERSION__: JSON.stringify(
@@ -63,7 +87,6 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
-    historyApiFallback: true,
     proxy: {
       "/v0": {
         target: "http://127.0.0.1:8317",
