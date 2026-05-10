@@ -402,7 +402,7 @@ export function SystemPage({
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [models]);
 
-  const apiKeyLookupUrl = `${window.location.origin}/manage/apikey-lookup`;
+  const apiKeyLookupUrl = `${window.location.origin}/apikey-lookup`;
 
   return (
     <div className="min-w-0 space-y-6 overflow-x-hidden">
