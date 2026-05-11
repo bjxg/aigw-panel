@@ -31,7 +31,31 @@ export const getApiCallErrorMessage = (result: ApiCallResult): string => {
 };
 
 export const apiCallApi = {
-  request: async (_payload: ApiCallRequest): Promise<ApiCallResult> => {
-    throw new Error("api-call endpoint has been removed");
+  request: async (payload: ApiCallRequest): Promise<ApiCallResult> => {
+    const response = await fetch(payload.url, {
+      method: payload.method,
+      headers: payload.header,
+      body: payload.data,
+    });
+
+    const bodyText = await response.text().catch(() => "");
+    let body: unknown = bodyText;
+    try {
+      body = JSON.parse(bodyText);
+    } catch {
+      // keep as text
+    }
+
+    const header: Record<string, string[]> = {};
+    response.headers.forEach((value, key) => {
+      header[key] = header[key] ? [...header[key], value] : [value];
+    });
+
+    return {
+      statusCode: response.status,
+      header,
+      body,
+      bodyText,
+    };
   },
 };
