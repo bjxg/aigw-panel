@@ -2846,6 +2846,8 @@
     "load_failed": "加载渠道分组配置失败"
   },
   "apikey_lookup": {
+    "generate_key": "生成密钥",
+    "my_models": "我的AI模型",
     "available_models": "可用模型",
     "usage_stats": "使用统计",
     "request_logs": "请求日志",

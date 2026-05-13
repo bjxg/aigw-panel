@@ -130,3 +130,9 @@ export async function fetchUserAPIKeys(): Promise<{ items: UserAPIKeyItem[] }> {
     method: "GET",
   });
 }
+
+export async function generateUserAPIKey(): Promise<{ id: number; key: string; name: string; disabled: boolean }> {
+  return fetchJSON<{ id: number; key: string; name: string; disabled: boolean }>("/keys/generate", {
+    method: "POST",
+  });
+}

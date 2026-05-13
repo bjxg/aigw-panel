@@ -11,6 +11,7 @@ import {
   fetchUserLogContent,
   fetchUserAPIKeys,
   toggleUserAPIKey,
+  generateUserAPIKey,
 } from "@/modules/user/usage/user-usage-api";
 import type { UserAPIKeyItem } from "@/modules/user/usage/user-usage-api";
 import { UserApiKeysSection } from "@/modules/user/usage/UserApiKeysSection";
@@ -298,6 +299,29 @@ export function UserUsagePage() {
     }
   }, []);
 
+  const handleGenerateKey = useCallback(async () => {
+    try {
+      const resp = await generateUserAPIKey();
+      const newKey: UserAPIKeyItem = {
+        id: resp.id,
+        key: resp.key,
+        name: resp.name || "",
+        disabled: resp.disabled,
+        daily_limit: 0,
+        total_quota: 0,
+        spending_limit: 0,
+        concurrency_limit: 0,
+        rpm_limit: 0,
+        tpm_limit: 0,
+        channel_groups: [],
+      };
+      setApiKeys((prev) => [newKey, ...prev]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "生成密钥失败";
+      setError(message);
+    }
+  }, []);
+
   const handleSubmit = useCallback(
     (event?: React.FormEvent) => {
       event?.preventDefault();
@@ -375,7 +399,7 @@ export function UserUsagePage() {
               <Key size={16} className="text-white" />
             </div>
             <span className="text-base font-bold tracking-tight text-slate-900">
-              {t("apikey_lookup.title")}
+              {t("apikey_lookup.my_models")}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -410,6 +434,7 @@ export function UserUsagePage() {
               timeRange={timeRange}
               setTimeRange={setTimeRange}
               handleRefresh={handleRefresh}
+              onGenerateKey={handleGenerateKey}
               loading={loading}
               chartLoading={chartLoading}
               modelsLoading={false}
