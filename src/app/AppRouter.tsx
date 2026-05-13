@@ -5,8 +5,6 @@ import { ProtectedRoute } from "@/app/guards/ProtectedRoute";
 import { DashboardLayout } from "@/modules/layout/DashboardLayout";
 import { ThemeProvider } from "@/modules/ui/ThemeProvider";
 import { ToastProvider } from "@/modules/ui/ToastProvider";
-
-
 // Lazy-loaded page components for route-level code splitting
 const LoginPage = lazy(() =>
   import("@/modules/login/LoginPage").then((m) => ({ default: m.LoginPage })),
@@ -73,6 +71,7 @@ const ImageGenerationPage = lazy(() =>
     default: m.ImageGenerationPage,
   })),
 );
+
 
 export function AppRouter() {
   return (

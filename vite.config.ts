@@ -6,9 +6,9 @@ import { panelMetadataPlugin } from "./src/build/panelMetadata";
 
 /**
  * Vite dev-server SPA fallback for multi-page apps.
- * Paths under /manage/ (the base URL) must resolve to manage.html
- * so that BrowserRouter + basename="/manage" is loaded instead of
- * the default index.html (which uses HashRouter).
+ * Paths under /manage/ resolve to manage.html so that
+ * BrowserRouter + basename="/manage" is loaded.
+ * Paths under /user/ resolve to user.html for the standalone user portal.
  */
 function spaFallbackForManage(): Plugin {
   return {
@@ -17,12 +17,20 @@ function spaFallbackForManage(): Plugin {
       server.middlewares.use((req, res, next) => {
         const url = req.url?.split("?")[0] ?? "";
         if (
-          url.startsWith("/manage/") &&
-          !url.includes(".") && // skip assets like .js, .css, .svg
-          !url.startsWith("/manage/@") && // skip Vite internals (@vite/client etc.)
-          !url.startsWith("/manage/src/") // skip source module requests
+          (url === "/manage" || url.startsWith("/manage/")) &&
+          !url.includes(".") &&
+          !url.startsWith("/@") &&
+          !url.startsWith("/src/")
         ) {
-          req.url = "/manage/manage.html";
+          req.url = "/manage.html";
+        }
+        if (
+          (url === "/user" || url.startsWith("/user/")) &&
+          !url.includes(".") &&
+          !url.startsWith("/@") &&
+          !url.startsWith("/src/")
+        ) {
+          req.url = "/user.html";
         }
         next();
       });
@@ -31,7 +39,7 @@ function spaFallbackForManage(): Plugin {
 }
 
 export default defineConfig({
-  base: "/manage/",
+  base: "/",
   plugins: [react(), tailwindcss(), panelMetadataPlugin(), spaFallbackForManage()],
   define: {
     // Prefer CI-provided build version (branch+sha/tag) so UI version auto-refreshes on deploy.
@@ -73,6 +81,7 @@ export default defineConfig({
       input: {
         main: path.resolve(__dirname, "index.html"),
         manage: path.resolve(__dirname, "manage.html"),
+        user: path.resolve(__dirname, "user.html"),
       },
       output: {
         manualChunks: {
@@ -101,6 +110,11 @@ export default defineConfig({
         ws: true,
       },
       "/v1beta": {
+        target: "http://127.0.0.1:8317",
+        changeOrigin: false,
+        ws: true,
+      },
+      "/oidc": {
         target: "http://127.0.0.1:8317",
         changeOrigin: false,
         ws: true,
