@@ -146,14 +146,16 @@ function ApiKeyCard({
 
       {item.channel_groups.length > 0 && (
         <div className="mt-4 space-y-3">
-          {item.channel_groups.map((group) => (
+          {item.channel_groups.map((group, idx) => (
             <div
-              key={group.name}
+              key={group.name || `default-${idx}`}
               className="rounded-xl border border-slate-100 p-3 dark:border-white/5"
             >
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">
-                {group.name}
-              </div>
+              {group.name && (
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                  {group.name}
+                </div>
+              )}
 
               {group.paths.length > 0 && (
                 <div className="mt-2">
@@ -174,7 +176,7 @@ function ApiKeyCard({
                 </div>
               )}
 
-              {group.models.length > 0 && (
+              {group.models.length > 0 ? (
                 <div className="mt-2">
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-white/50">
                     <Bot size={12} />
@@ -189,6 +191,18 @@ function ApiKeyCard({
                         {model}
                       </span>
                     ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-2">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-white/50">
+                    <Bot size={12} />
+                    <span>{t("apikey_lookup.allowed_models")}</span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    <span className="inline-flex rounded-lg bg-slate-100 px-2 py-1 text-xs text-slate-700 dark:bg-white/10 dark:text-white/80">
+                      {t("apikey_lookup.all_models")}
+                    </span>
                   </div>
                 </div>
               )}
