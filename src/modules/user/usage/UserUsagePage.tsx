@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Key } from "lucide-react";
-import { ThemeToggleButton } from "@/modules/ui/ThemeProvider";
+import { ThemeToggleButton, useTheme } from "@/modules/ui/ThemeProvider";
 import { LanguageSelector } from "@/modules/ui/LanguageSelector";
 import type { TimeRange } from "@/modules/monitor/monitor-constants";
 import { LogContentModal } from "@/modules/monitor/LogContentModal";
@@ -78,7 +78,10 @@ function toLogRow(item: PublicLogItem): LogRow {
 
 export function UserUsagePage() {
   const { t } = useTranslation();
-  const isDark = false;
+  const {
+    state: { mode },
+  } = useTheme();
+  const isDark = mode === "dark";
 
   const [compact, setCompact] = useState(() => window.innerWidth < 700);
   useEffect(() => {
@@ -391,14 +394,14 @@ export function UserUsagePage() {
   }, [lastUpdatedAt]);
 
   return (
-    <div className="relative min-h-dvh bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/70 backdrop-blur-xl">
+    <div className="relative min-h-dvh bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
+      <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/70 backdrop-blur-xl dark:border-neutral-800/60 dark:bg-neutral-950/70">
         <div className="mx-auto flex h-14 max-w-screen-xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 shadow-sm">
-              <Key size={16} className="text-white" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 shadow-sm dark:bg-white">
+              <Key size={16} className="text-white dark:text-neutral-950" />
             </div>
-            <span className="text-base font-bold tracking-tight text-slate-900">
+            <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
               {t("apikey_lookup.my_models")}
             </span>
           </div>
@@ -420,7 +423,7 @@ export function UserUsagePage() {
         />
 
         {error && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-300">
             {error}
           </div>
         )}

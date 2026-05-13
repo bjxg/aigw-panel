@@ -12,7 +12,7 @@ const DAILY_LEGEND_KEYS = {
 } as const;
 
 function formatLocalDateLabel(dateStr: string): string {
-  const date = new Date(`${dateStr}T00:00:00`);
+  const date = new Date(dateStr);
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
