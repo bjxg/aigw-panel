@@ -9,12 +9,14 @@ export function LookupSearchSection({
   setApiKeyInput,
   handleSubmit,
   loading,
+  allowEmptySearch = false,
 }: {
   t: (key: string, options?: Record<string, unknown>) => string;
   apiKeyInput: string;
   setApiKeyInput: (value: string) => void;
   handleSubmit: (event?: React.FormEvent) => void;
   loading: boolean;
+  allowEmptySearch?: boolean;
 }) {
   return (
     <Card>
@@ -38,7 +40,7 @@ export function LookupSearchSection({
           variant="primary"
           type="submit"
           id="apikey-lookup-submit"
-          disabled={!apiKeyInput.trim() || loading}
+          disabled={(!allowEmptySearch && !apiKeyInput.trim()) || loading}
           className="shrink-0 px-5"
         >
           {loading ? (

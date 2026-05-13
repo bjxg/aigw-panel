@@ -13,16 +13,20 @@ export function LookupResultsToolbar({
   loading,
   chartLoading,
   modelsLoading,
+  showModelsTab = true,
+  showKeysTab = false,
 }: {
   t: (key: string, options?: Record<string, unknown>) => string;
-  activeTab: "usage" | "logs" | "models";
-  setActiveTab: (value: "usage" | "logs" | "models") => void;
+  activeTab: "usage" | "logs" | "models" | "keys";
+  setActiveTab: (value: "usage" | "logs" | "models" | "keys") => void;
   timeRange: TimeRange;
   setTimeRange: (value: TimeRange) => void;
   handleRefresh: () => void;
   loading: boolean;
   chartLoading: boolean;
   modelsLoading: boolean;
+  showModelsTab?: boolean;
+  showKeysTab?: boolean;
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -31,10 +35,15 @@ export function LookupResultsToolbar({
           <TabsList>
             <TabsTrigger value="usage">{t("apikey_lookup.usage_stats")}</TabsTrigger>
             <TabsTrigger value="logs">{t("apikey_lookup.request_logs")}</TabsTrigger>
-            <TabsTrigger value="models">{t("apikey_lookup.available_models")}</TabsTrigger>
+            {showModelsTab ? (
+              <TabsTrigger value="models">{t("apikey_lookup.available_models")}</TabsTrigger>
+            ) : null}
+            {showKeysTab ? (
+              <TabsTrigger value="keys">{t("apikey_lookup.my_api_keys")}</TabsTrigger>
+            ) : null}
           </TabsList>
         </Tabs>
-        {activeTab !== "models" ? (
+        {activeTab !== "models" && activeTab !== "keys" ? (
           <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
         ) : null}
       </div>

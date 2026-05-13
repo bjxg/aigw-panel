@@ -4,6 +4,7 @@ import { HashRouter } from "react-router-dom";
 import { UserAppRouter } from "@/user/UserAppRouter";
 import "@/styles/index.css";
 import "goey-toast/styles.css";
+import "@/i18n";
 
 const rootElement = document.getElementById("root");
 

@@ -26,6 +26,7 @@ function spaFallbackForManage(): Plugin {
         }
         if (
           (url === "/user" || url.startsWith("/user/")) &&
+          !url.startsWith("/user/api/") &&
           !url.includes(".") &&
           !url.startsWith("/@") &&
           !url.startsWith("/src/")
@@ -118,6 +119,10 @@ export default defineConfig({
         target: "http://127.0.0.1:8317",
         changeOrigin: false,
         ws: true,
+      },
+      "/user/api": {
+        target: "http://127.0.0.1:8317",
+        changeOrigin: false,
       },
     },
   },

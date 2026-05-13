@@ -2877,7 +2877,19 @@
     "input_token": "输入 Token",
     "output_token": "输出 Token",
     "empty_title": "查询 API 密钥用量",
-    "empty_desc": "输入上方 API 密钥后，可查看详细用量统计和请求日志。"
+    "empty_desc": "输入上方 API 密钥后，可查看详细用量统计和请求日志。",
+    "my_api_keys": "我的API密钥",
+    "unnamed_key": "未命名密钥",
+    "disabled": "已禁用",
+    "active": "启用中",
+    "daily_limit": "每日限额",
+    "total_quota": "总配额",
+    "rpm_limit": "RPM 限制",
+    "tpm_limit": "TPM 限制",
+    "unlimited": "无限制",
+    "api_endpoints": "API 地址",
+    "allowed_models": "可用模型",
+    "no_api_keys": "暂无 API 密钥"
   },
   "config_page": {
     "runtime_switches": "运行时开关",

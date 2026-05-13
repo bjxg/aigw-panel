@@ -2659,7 +2659,19 @@
     "input_token": "Input token",
     "output_token": "Output token",
     "empty_title": "Query your API key usage",
-    "empty_desc": "Enter your API key above to view detailed usage statistics and request logs."
+    "empty_desc": "Enter your API key above to view detailed usage statistics and request logs.",
+    "my_api_keys": "My API Keys",
+    "unnamed_key": "Unnamed Key",
+    "disabled": "Disabled",
+    "active": "Active",
+    "daily_limit": "Daily Limit",
+    "total_quota": "Total Quota",
+    "rpm_limit": "RPM Limit",
+    "tpm_limit": "TPM Limit",
+    "unlimited": "Unlimited",
+    "api_endpoints": "API Endpoints",
+    "allowed_models": "Allowed Models",
+    "no_api_keys": "No API keys"
   },
   "auth_files_page": {
     "files_tab": "Files",
