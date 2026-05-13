@@ -4,6 +4,11 @@ import type { ChartDataResponse, PublicLogsResponse } from "@/modules/apikey-loo
 
 const USER_API_PREFIX = "/user/api";
 
+function clearTokenAndRedirect(): void {
+  localStorage.removeItem("user_token");
+  window.location.href = "/user/#/login";
+}
+
 function fetchJSON<T>(path: string, options?: RequestInit): Promise<T> {
   const base = detectApiBaseFromLocation();
   const url = `${base}${USER_API_PREFIX}${path}`;
@@ -22,6 +27,10 @@ function fetchJSON<T>(path: string, options?: RequestInit): Promise<T> {
     },
   }).then(async (res) => {
     const data = await res.json().catch(() => ({ error: "Network error" }));
+    if (res.status === 401) {
+      clearTokenAndRedirect();
+      throw new Error(data?.error || "Session expired, redirecting to login");
+    }
     if (!res.ok) {
       throw new Error(data?.error || `HTTP ${res.status}`);
     }
@@ -101,6 +110,19 @@ export interface UserAPIKeyItem {
   rpm_limit: number;
   tpm_limit: number;
   channel_groups: UserAPIKeyGroupItem[];
+}
+
+export async function toggleUserAPIKey(params: {
+  id: number;
+  disabled: boolean;
+}): Promise<{ success: boolean; disabled: boolean }> {
+  return fetchJSON<{ success: boolean; disabled: boolean }>(
+    `/keys/${params.id}/toggle`,
+    {
+      method: "POST",
+      body: JSON.stringify({ disabled: params.disabled }),
+    },
+  );
 }
 
 export async function fetchUserAPIKeys(): Promise<{ items: UserAPIKeyItem[] }> {

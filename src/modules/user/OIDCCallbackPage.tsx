@@ -22,7 +22,7 @@ export function OIDCCallbackPage() {
 
     callback(code, state)
       .then(() => {
-        navigate("/profile", { replace: true });
+        navigate("/usage", { replace: true });
       })
       .catch((err: any) => {
         setError(err.message || "Login failed");

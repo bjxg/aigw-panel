@@ -8,7 +8,7 @@ export function UserLoginPage() {
 
   useEffect(() => {
     if (getToken()) {
-      navigate("/profile", { replace: true });
+      navigate("/usage", { replace: true });
       return;
     }
     authorize()

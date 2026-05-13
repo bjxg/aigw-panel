@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Key, Eye, EyeOff, Copy, Check, Server, Bot } from "lucide-react";
+import { Key, Eye, EyeOff, Copy, Check, Server, Bot, Loader2 } from "lucide-react";
 import type { UserAPIKeyItem } from "./user-usage-api";
 
 function fallbackCopy(text: string): boolean {
@@ -60,7 +60,15 @@ function maskKey(key: string): string {
   return key.slice(0, 5) + "..." + key.slice(-5);
 }
 
-function ApiKeyCard({ item }: { item: UserAPIKeyItem }) {
+function ApiKeyCard({
+  item,
+  onToggle,
+  toggling,
+}: {
+  item: UserAPIKeyItem;
+  onToggle: (id: number, disabled: boolean) => void;
+  toggling: boolean;
+}) {
   const { t } = useTranslation();
   const [showKey, setShowKey] = useState(false);
 
@@ -93,15 +101,20 @@ function ApiKeyCard({ item }: { item: UserAPIKeyItem }) {
             </div>
           </div>
         </div>
-        {item.disabled ? (
-          <span className="rounded-full bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
-            {t("apikey_lookup.disabled")}
-          </span>
-        ) : (
-          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
-            {t("apikey_lookup.active")}
-          </span>
-        )}
+        <button
+          type="button"
+          disabled={toggling}
+          onClick={() => onToggle(item.id, !item.disabled)}
+          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition ${
+            item.disabled
+              ? "bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20"
+              : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
+          } ${toggling ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+          title={item.disabled ? t("apikey_lookup.enable") : t("apikey_lookup.disable")}
+        >
+          {toggling && <Loader2 size={12} className="animate-spin" />}
+          {item.disabled ? t("apikey_lookup.disabled") : t("apikey_lookup.active")}
+        </button>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -190,9 +203,13 @@ function ApiKeyCard({ item }: { item: UserAPIKeyItem }) {
 export function UserApiKeysSection({
   items,
   loading,
+  onToggle,
+  togglingId,
 }: {
   items: UserAPIKeyItem[];
   loading: boolean;
+  onToggle?: (id: number, disabled: boolean) => void;
+  togglingId?: number | null;
 }) {
   const { t } = useTranslation();
 
@@ -231,7 +248,12 @@ export function UserApiKeysSection({
   return (
     <div className="space-y-4">
       {items.map((item) => (
-        <ApiKeyCard key={item.id} item={item} />
+        <ApiKeyCard
+          key={item.id}
+          item={item}
+          onToggle={onToggle ?? (() => {})}
+          toggling={togglingId === item.id}
+        />
       ))}
     </div>
   );

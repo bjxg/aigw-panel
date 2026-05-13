@@ -10,6 +10,7 @@ import {
   fetchUserUsageLogs,
   fetchUserLogContent,
   fetchUserAPIKeys,
+  toggleUserAPIKey,
 } from "@/modules/user/usage/user-usage-api";
 import type { UserAPIKeyItem } from "@/modules/user/usage/user-usage-api";
 import { UserApiKeysSection } from "@/modules/user/usage/UserApiKeysSection";
@@ -115,6 +116,7 @@ export function UserUsagePage() {
 
   const [apiKeys, setApiKeys] = useState<UserAPIKeyItem[]>([]);
   const [apiKeysLoading, setApiKeysLoading] = useState(false);
+  const [togglingKeyId, setTogglingKeyId] = useState<number | null>(null);
 
   const [rawItems, setRawItems] = useState<PublicLogItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -281,6 +283,21 @@ export function UserUsagePage() {
     }
   }, []);
 
+  const handleToggleKey = useCallback(async (id: number, disabled: boolean) => {
+    setTogglingKeyId(id);
+    try {
+      await toggleUserAPIKey({ id, disabled });
+      setApiKeys((prev) =>
+        prev.map((k) => (k.id === id ? { ...k, disabled } : k)),
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "操作失败";
+      setError(message);
+    } finally {
+      setTogglingKeyId(null);
+    }
+  }, []);
+
   const handleSubmit = useCallback(
     (event?: React.FormEvent) => {
       event?.preventDefault();
@@ -444,7 +461,12 @@ export function UserUsagePage() {
             ) : null}
 
             {activeTab === "keys" ? (
-              <UserApiKeysSection items={apiKeys} loading={apiKeysLoading} />
+              <UserApiKeysSection
+                items={apiKeys}
+                loading={apiKeysLoading}
+                onToggle={handleToggleKey}
+                togglingId={togglingKeyId}
+              />
             ) : null}
           </>
         )}

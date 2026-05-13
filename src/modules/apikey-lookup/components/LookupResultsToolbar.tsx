@@ -1,9 +1,10 @@
+import type { Dispatch, SetStateAction } from "react";
 import { RefreshCw } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/modules/ui/Tabs";
 import { TimeRangeSelector } from "@/modules/monitor/MonitorPagePieces";
 import type { TimeRange } from "@/modules/monitor/monitor-constants";
 
-export function LookupResultsToolbar({
+export function LookupResultsToolbar<T extends string>({
   t,
   activeTab,
   setActiveTab,
@@ -17,8 +18,8 @@ export function LookupResultsToolbar({
   showKeysTab = false,
 }: {
   t: (key: string, options?: Record<string, unknown>) => string;
-  activeTab: "usage" | "logs" | "models" | "keys";
-  setActiveTab: (value: "usage" | "logs" | "models" | "keys") => void;
+  activeTab: T;
+  setActiveTab: React.Dispatch<React.SetStateAction<T>>;
   timeRange: TimeRange;
   setTimeRange: (value: TimeRange) => void;
   handleRefresh: () => void;
