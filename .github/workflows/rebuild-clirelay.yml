@@ -11,12 +11,12 @@ jobs:
     steps:
       - name: Trigger aigw docker publish workflow
         env:
-          GH_TOKEN: ${{ secrets.aigw_WORKFLOW_TOKEN }}
+          GH_TOKEN: ${{ secrets.AIGW_WORKFLOW_TOKEN }}
           TARGET_REF: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           if [ -z "${GH_TOKEN}" ]; then
-            echo "aigw_WORKFLOW_TOKEN secret is required to trigger aigw docker builds." >&2
+            echo "AIGW_WORKFLOW_TOKEN secret is required to trigger aigw docker builds." >&2
             exit 1
           fi
 
