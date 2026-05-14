@@ -121,7 +121,7 @@
     "sign_in": "登录",
     "placeholder": "输入管理密钥",
     "hero_title_line1": "面向 Agent 的",
-    "hero_title_line2": "统一代理平台",
+    "hero_title_line2": "统一网关平台",
     "hero_description": "登录管理控制台，查看网关状态、调用监控和关键运行指标。",
     "trusted_by": "TRUSTED BY",
     "continue_with_key": "使用管理密钥继续",
@@ -2847,7 +2847,7 @@
   },
   "apikey_lookup": {
     "generate_key": "生成密钥",
-    "my_models": "我的AI模型",
+    "my_models": "AIGW",
     "available_models": "可用模型",
     "usage_stats": "使用统计",
     "request_logs": "请求日志",

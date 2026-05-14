@@ -55,6 +55,45 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+function CopyPath({ path }: { path: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    let ok = false;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(path);
+        ok = true;
+      } else {
+        ok = fallbackCopy(path);
+      }
+    } catch {
+      ok = fallbackCopy(path);
+    }
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-mono text-slate-700 transition hover:bg-slate-200 active:bg-slate-300 dark:bg-white/10 dark:text-white/80 dark:hover:bg-white/20 dark:active:bg-white/30"
+    >
+      {copied ? (
+        <span className="inline-flex items-center gap-1">
+          <Check size={12} className="text-emerald-500" />
+          <span className="text-emerald-600 dark:text-emerald-400">已复制</span>
+        </span>
+      ) : (
+        path
+      )}
+    </button>
+  );
+}
+
 function maskKey(key: string): string {
   if (key.length <= 10) return key;
   return key.slice(0, 5) + "..." + key.slice(-5);
@@ -165,12 +204,7 @@ function ApiKeyCard({
                   </div>
                   <div className="mt-1 flex flex-wrap gap-2">
                     {group.paths.map((path) => (
-                      <code
-                        key={path}
-                        className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-mono text-slate-700 dark:bg-white/10 dark:text-white/80"
-                      >
-                        {path}
-                      </code>
+                      <CopyPath key={path} path={path} />
                     ))}
                   </div>
                 </div>
@@ -184,12 +218,7 @@ function ApiKeyCard({
                   </div>
                   <div className="mt-1 flex flex-wrap gap-2">
                     {group.models.map((model) => (
-                      <span
-                        key={model}
-                        className="inline-flex rounded-lg bg-slate-100 px-2 py-1 text-xs text-slate-700 dark:bg-white/10 dark:text-white/80"
-                      >
-                        {model}
-                      </span>
+                      <CopyPath key={model} path={model} />
                     ))}
                   </div>
                 </div>

@@ -9,7 +9,7 @@ import { PageBackground } from "@/modules/ui/PageBackground";
 import { Reveal } from "@/modules/ui/Reveal";
 import { ThemeToggleButton } from "@/modules/ui/ThemeProvider";
 import { useToast } from "@/modules/ui/ToastProvider";
-import { OpenAILogo, GeminiLogo, ClaudeLogo, VertexLogo } from "@/modules/dashboard/ProviderLogos";
+import { OpenAILogo, DeepSeekLogo, KimiLogo, MiniMaxLogo } from "@/modules/dashboard/ProviderLogos";
 
 interface RedirectState {
   from?: {
@@ -100,7 +100,7 @@ export function LoginPage() {
                   <Lock size={18} className="text-slate-900 dark:text-white" />
                 </div>
                 <div className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
-                  Code Proxy
+                  AIGW
                 </div>
               </div>
 
@@ -125,16 +125,16 @@ export function LoginPage() {
                     OpenAI
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 ring-1 ring-slate-200 backdrop-blur dark:bg-neutral-950/50 dark:ring-white/10">
-                    <GeminiLogo size={16} className="text-blue-500" />
-                    Gemini
+                    <DeepSeekLogo size={16} />
+                    DeepSeek
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 ring-1 ring-slate-200 backdrop-blur dark:bg-neutral-950/50 dark:ring-white/10">
-                    <ClaudeLogo size={16} className="text-[#D97757]" />
-                    Claude
+                    <KimiLogo size={16} />
+                    Kimi
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 ring-1 ring-slate-200 backdrop-blur dark:bg-neutral-950/50 dark:ring-white/10">
-                    <VertexLogo size={16} className="text-[#4285F4]" />
-                    Vertex
+                    <MiniMaxLogo size={16} />
+                    MiniMax
                   </span>
                 </div>
               </div>
