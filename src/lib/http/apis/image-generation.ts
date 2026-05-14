@@ -59,7 +59,18 @@ export interface ImageGenerationTestTaskResponse
   };
 }
 
+export interface ImageGenerationChannelsResponse {
+  model: string;
+  channels: string[];
+}
+
 export const imageGenerationApi = {
+  listChannels: (): Promise<ImageGenerationChannelsResponse> => {
+    return apiClient.get<ImageGenerationChannelsResponse>(
+      "/image-generation/channels",
+    );
+  },
+
   startTestTask: (
     payload: ImageGenerationTestRequest | ImageEditTestRequest,
   ): Promise<ImageGenerationTestTaskStartResponse> => {

@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { ArrowUp, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { authFilesApi, imageGenerationApi } from "@/lib/http/apis";
-import type { AuthFileItem } from "@/lib/http/types";
+import { imageGenerationApi } from "@/lib/http/apis";
 import { Button } from "@/modules/ui/Button";
 import { Card } from "@/modules/ui/Card";
 import { ImagePreviewOverlay } from "@/modules/ui/ImagePreviewOverlay";
@@ -58,16 +57,6 @@ type EndpointDoc = {
 };
 type GeneratedImage = { src: string; revisedPrompt?: string };
 type UploadedImage = { id: string; file: File; previewUrl: string };
-
-const isCodexOauthFile = (file: AuthFileItem): boolean => {
-  const accountType = String(file.account_type ?? "")
-    .trim()
-    .toLowerCase();
-  const provider = String(file.type ?? file.provider ?? "")
-    .trim()
-    .toLowerCase();
-  return accountType === "oauth" && provider === "codex";
-};
 
 const textToImageCurl = [
   "curl http://127.0.0.1:8317/v1/images/generations \\",
@@ -224,9 +213,9 @@ export function ImageGenerationPage() {
     const loadAvailability = async () => {
       setChannelsLoading(true);
       try {
-        const response = await authFilesApi.list();
+        const response = await imageGenerationApi.listChannels();
         if (cancelled) return;
-        setHasCodexOauthChannel((response.files ?? []).some(isCodexOauthFile));
+        setHasCodexOauthChannel((response.channels ?? []).length > 0);
       } catch {
         if (!cancelled) {
           setHasCodexOauthChannel(false);
