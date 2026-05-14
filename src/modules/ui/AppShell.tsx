@@ -184,7 +184,7 @@ function ShellSidebar({
           <span className="leading-tight">
             <span className="block text-lg font-semibold tracking-tight">{t("shell.console")}</span>
             <span className="block text-[10px] font-medium tracking-normal text-slate-400">
-              CLI Proxy
+              AIGW
             </span>
           </span>
         </div>
