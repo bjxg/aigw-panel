@@ -5,7 +5,7 @@ const setAuthed = async (page: Page) => {
     localStorage.setItem(
       "code-proxy-admin-auth",
       JSON.stringify({
-        apiBase: "http://127.0.0.1:8317",
+        apiBase: "http://127.0.0.1:8217",
         managementKey: "test-management-key",
         rememberPassword: true,
         expiresAt: Date.now() + 24 * 60 * 60 * 1000,
@@ -248,7 +248,7 @@ test("Config: source editor save should persist edited yaml through save path", 
   await expect(editor).toBeVisible();
   await expect(editor).toHaveValue(currentYaml);
 
-  const nextYaml = "server:\n  host: 127.0.0.1\n  port: 8317\n";
+  const nextYaml = "server:\n  host: 127.0.0.1\n  port: 8217\n";
   await editor.fill(nextYaml);
 
   const saveButton = page.getByRole("button", { name: /^保存$|^Save$/i });

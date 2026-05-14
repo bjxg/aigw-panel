@@ -7,7 +7,7 @@ test("Auth Files: OAuth excluded models tab should not stay loading on empty res
     localStorage.setItem(
       "code-proxy-admin-auth",
       JSON.stringify({
-        apiBase: "http://127.0.0.1:8317",
+        apiBase: "http://127.0.0.1:8217",
         managementKey: "test-management-key",
         rememberPassword: true,
         expiresAt: Date.now() + 24 * 60 * 60 * 1000,
@@ -70,7 +70,7 @@ test("Auth Files: OAuth dialog should submit callback url through management api
     localStorage.setItem(
       "code-proxy-admin-auth",
       JSON.stringify({
-        apiBase: "http://127.0.0.1:8317",
+        apiBase: "http://127.0.0.1:8217",
         managementKey: "test-management-key",
         rememberPassword: true,
         expiresAt: Date.now() + 24 * 60 * 60 * 1000,

@@ -59,7 +59,7 @@ type GeneratedImage = { src: string; revisedPrompt?: string };
 type UploadedImage = { id: string; file: File; previewUrl: string };
 
 const textToImageCurl = [
-  "curl http://127.0.0.1:8317/v1/images/generations \\",
+  "curl http://127.0.0.1:8217/v1/images/generations \\",
   '  -H "Authorization: Bearer $API_KEY" \\',
   '  -H "Content-Type: application/json" \\',
   "  -d '{",
@@ -72,7 +72,7 @@ const textToImageCurl = [
 ].join("\n");
 
 const imageToImageCurl = [
-  "curl http://127.0.0.1:8317/v1/images/edits \\",
+  "curl http://127.0.0.1:8217/v1/images/edits \\",
   '  -H "Authorization: Bearer $API_KEY" \\',
   '  -F "model=gpt-image-2" \\',
   '  -F "prompt=把这张图改成蓝色图标风格" \\',

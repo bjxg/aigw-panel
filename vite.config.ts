@@ -101,27 +101,27 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/v0": {
-        target: "http://127.0.0.1:8317",
+        target: "http://127.0.0.1:8217",
         changeOrigin: false,
         ws: true,
       },
       "/v1": {
-        target: "http://127.0.0.1:8317",
+        target: "http://127.0.0.1:8217",
         changeOrigin: false,
         ws: true,
       },
       "/v1beta": {
-        target: "http://127.0.0.1:8317",
+        target: "http://127.0.0.1:8217",
         changeOrigin: false,
         ws: true,
       },
       "/oidc": {
-        target: "http://127.0.0.1:8317",
+        target: "http://127.0.0.1:8217",
         changeOrigin: false,
         ws: true,
       },
       "/user/api": {
-        target: "http://127.0.0.1:8317",
+        target: "http://127.0.0.1:8217",
         changeOrigin: false,
       },
     },

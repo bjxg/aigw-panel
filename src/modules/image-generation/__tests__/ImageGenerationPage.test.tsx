@@ -81,7 +81,7 @@ describe("ImageGenerationPage", () => {
     expect(screen.getByRole("tab", { name: "图生图" })).toBeInTheDocument();
     expect(within(callCard as HTMLElement).getByText("POST")).toBeInTheDocument();
     expect(within(callCard as HTMLElement).getByText("/v1/images/generations")).toBeInTheDocument();
-    const textCurl = screen.getByText(/curl http:\/\/127\.0\.0\.1:8317\/v1\/images\/generations/);
+    const textCurl = screen.getByText(/curl http:\/\/127\.0\.0\.1:8217\/v1\/images\/generations/);
     expect(
       textCurl.compareDocumentPosition(screen.getByText("请求参数")) &
         Node.DOCUMENT_POSITION_FOLLOWING,
