@@ -99,6 +99,23 @@ function maskKey(key: string): string {
   return key.slice(0, 5) + "..." + key.slice(-5);
 }
 
+function formatDateTime(iso: string): string {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
+}
+
 function ApiKeyCard({
   item,
   onToggle,
@@ -137,6 +154,11 @@ function ApiKeyCard({
                 {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
               <CopyButton text={item.key} />
+              {item.created_at && (
+                <span className="text-xs text-slate-400 dark:text-white/40">
+                  {formatDateTime(item.created_at)}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -196,45 +218,39 @@ function ApiKeyCard({
                 </div>
               )}
 
-              {group.paths.length > 0 && (
-                <div className="mt-2">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-white/50">
-                    <Server size={12} />
-                    <span>{t("apikey_lookup.api_endpoints")}</span>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-start">
+                {group.paths.length > 0 && (
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-white/50">
+                      <Server size={12} />
+                      <span>{t("apikey_lookup.api_endpoints")}</span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {group.paths.map((path) => (
+                        <CopyPath key={path} path={path} />
+                      ))}
+                    </div>
                   </div>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {group.paths.map((path) => (
-                      <CopyPath key={path} path={path} />
-                    ))}
-                  </div>
-                </div>
-              )}
+                )}
 
-              {group.models.length > 0 ? (
-                <div className="mt-2">
+                <div className="flex-1">
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-white/50">
                     <Bot size={12} />
                     <span>{t("apikey_lookup.allowed_models")}</span>
                   </div>
                   <div className="mt-1 flex flex-wrap gap-2">
-                    {group.models.map((model) => (
-                      <CopyPath key={model} path={model} />
-                    ))}
+                    {group.models.length > 0 ? (
+                      group.models.map((model) => (
+                        <CopyPath key={model} path={model} />
+                      ))
+                    ) : (
+                      <span className="inline-flex rounded-lg bg-slate-100 px-2 py-1 text-xs text-slate-700 dark:bg-white/10 dark:text-white/80">
+                        {t("apikey_lookup.all_models")}
+                      </span>
+                    )}
                   </div>
                 </div>
-              ) : (
-                <div className="mt-2">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-white/50">
-                    <Bot size={12} />
-                    <span>{t("apikey_lookup.allowed_models")}</span>
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    <span className="inline-flex rounded-lg bg-slate-100 px-2 py-1 text-xs text-slate-700 dark:bg-white/10 dark:text-white/80">
-                      {t("apikey_lookup.all_models")}
-                    </span>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           ))}
         </div>

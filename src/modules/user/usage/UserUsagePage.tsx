@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Key } from "lucide-react";
+import aigwLogo from "@/assets/aigw-logo.png";
 import { ThemeToggleButton, useTheme } from "@/modules/ui/ThemeProvider";
 import { LanguageSelector } from "@/modules/ui/LanguageSelector";
 import type { TimeRange } from "@/modules/monitor/monitor-constants";
@@ -398,9 +398,11 @@ export function UserUsagePage() {
       <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/70 backdrop-blur-xl dark:border-neutral-800/60 dark:bg-neutral-950/70">
         <div className="mx-auto flex h-14 max-w-screen-xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 shadow-sm dark:bg-white">
-              <Key size={16} className="text-white dark:text-neutral-950" />
-            </div>
+            <img
+              src={aigwLogo}
+              alt="AIGW"
+              className="h-8 w-8 rounded-xl object-contain"
+            />
             <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
               {t("apikey_lookup.my_models")}
             </span>

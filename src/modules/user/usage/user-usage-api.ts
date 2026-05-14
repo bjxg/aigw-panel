@@ -103,6 +103,7 @@ export interface UserAPIKeyItem {
   name: string;
   key: string;
   disabled: boolean;
+  created_at: string;
   daily_limit: number;
   total_quota: number;
   spending_limit: number;
