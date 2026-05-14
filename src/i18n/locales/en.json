@@ -3349,8 +3349,6 @@
     "copy_failed": "Copy failed",
     "clipboard_unsupported": "Browser does not support clipboard",
     "rule_n": "Rule {{n}}",
-    "api_migrated": "API Keys have been migrated to the dedicated management page.",
-    "go_to_api_keys": "Go to API Keys →",
     "kimi_headers": "Kimi Header Configuration",
     "kimi_headers_desc": "Configure headers used when calling Kimi API, affecting how requests appear in Kimi console.",
     "kimi_user_agent_hint": "User-Agent default: KimiCLI/1.10.6",
