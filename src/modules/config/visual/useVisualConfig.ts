@@ -484,7 +484,6 @@ export function useVisualConfig() {
               ? remoteManagement["panel-repo"]
               : "",
 
-        authDir: typeof parsed["auth-dir"] === "string" ? parsed["auth-dir"] : "",
         apiKeysText: parseApiKeysText(parsed["api-keys"]),
         corsAllowOriginsText: parseStringListText(parsed["cors-allow-origins"]),
 
@@ -576,8 +575,6 @@ export function useVisualConfig() {
           if (hasOwn(rm, "panel-repo")) delete rm["panel-repo"];
           deleteIfEmpty(parsed, "remote-management");
         }
-
-        setString(parsed, "auth-dir", values.authDir);
 
         if (hasOwn(parsed, "cors-allow-origins") || values.corsAllowOriginsText.trim()) {
           const origins = parseMultilineList(values.corsAllowOriginsText);

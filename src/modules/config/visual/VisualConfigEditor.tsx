@@ -104,15 +104,6 @@ export function VisualConfigEditor({
               </Field>
             </div>
 
-            <Field label="auth-dir" hint={t("visual_config.auth_dir")}>
-              <TextInput
-                value={values.authDir}
-                onChange={(e) => update({ authDir: e.currentTarget.value })}
-                placeholder="./auth"
-                disabled={disabled}
-              />
-            </Field>
-
             <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 px-4 py-3 dark:border-indigo-800 dark:bg-indigo-950/30">
               <p className="text-sm text-indigo-800 dark:text-indigo-300">
                 {t("visual_config.api_migrated")}

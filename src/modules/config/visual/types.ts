@@ -79,7 +79,6 @@ export type VisualConfigValues = {
   rmDisableControlPanel: boolean;
   rmPanelRepo: string;
 
-  authDir: string;
   apiKeysText: string;
   corsAllowOriginsText: string;
 
@@ -134,7 +133,6 @@ export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
   rmSecretKey: "",
   rmDisableControlPanel: false,
   rmPanelRepo: "",
-  authDir: "",
   apiKeysText: "",
   corsAllowOriginsText: "",
   debug: false,

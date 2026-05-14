@@ -309,7 +309,6 @@ export function useVisualConfig() {
               ? remoteManagement["panel-repo"]
               : "",
 
-        authDir: typeof parsed["auth-dir"] === "string" ? parsed["auth-dir"] : "",
         apiKeysText: parseApiKeysText(parsed["api-keys"]),
 
         debug: Boolean(parsed.debug),
@@ -396,7 +395,6 @@ export function useVisualConfig() {
           deleteIfMapEmpty(doc, ["remote-management"]);
         }
 
-        setStringInDoc(doc, ["auth-dir"], values.authDir);
         if (values.apiKeysText !== baselineValues.apiKeysText) {
           const apiKeys = values.apiKeysText
             .split("\n")

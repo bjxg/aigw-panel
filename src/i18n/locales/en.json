@@ -1322,12 +1322,6 @@
           "secret_key_placeholder": "Set management key",
           "panel_repo": "Panel Repository"
         },
-        "auth": {
-          "title": "Authentication Configuration",
-          "description": "API keys and authentication directory settings",
-          "auth_dir": "Auth Directory (auth-dir)",
-          "auth_dir_hint": "Directory path for authentication files (supports ~)"
-        },
         "system": {
           "title": "System Configuration",
           "description": "Debug, logging, statistics, and performance settings",
@@ -3234,9 +3228,8 @@
     "delete_api_key": "Delete API Key",
     "payload_filter": "Payload Filter Rule",
     "basics": "Basics",
-    "basics_desc": "Host/port, auth directory & API Keys.",
+    "basics_desc": "Host/port & API Keys.",
     "empty_default": "Empty uses server default.",
-    "auth_dir": "Auth file directory path.",
     "tls": "TLS",
     "tls_desc": "Enable TLS and configure certificate paths.",
     "tls_uses": "Uses tls.cert / tls.key when enabled.",

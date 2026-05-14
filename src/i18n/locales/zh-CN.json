@@ -1333,12 +1333,6 @@
           "secret_key_placeholder": "设置管理密钥",
           "panel_repo": "面板仓库"
         },
-        "auth": {
-          "title": "认证配置",
-          "description": "API 密钥与认证文件目录设置",
-          "auth_dir": "认证文件目录 (auth-dir)",
-          "auth_dir_hint": "存放认证文件的目录路径（支持 ~）"
-        },
         "system": {
           "title": "系统配置",
           "description": "调试、日志、统计与性能调试设置",
@@ -3388,9 +3382,8 @@
     "delete_api_key": "删除 API 密钥",
     "payload_filter": "报文过滤规则",
     "basics": "基础设置",
-    "basics_desc": "主机/端口、认证目录和 API 密钥。",
+    "basics_desc": "主机/端口和 API 密钥。",
     "empty_default": "留空使用服务器默认值。",
-    "auth_dir": "认证文件目录路径。",
     "tls": "TLS",
     "tls_desc": "启用 TLS 并配置证书路径。",
     "tls_uses": "启用时使用 tls.cert / tls.key。",
