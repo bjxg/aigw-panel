@@ -236,44 +236,7 @@ export function VisualConfigEditor({
               onCheckedChange={(next) => update({ usageStatisticsEnabled: next })}
               disabled={disabled}
             />
-            <ToggleSwitch
-              label={t("config_page.auto_update")}
-              description={t("config_page.auto_update_desc")}
-              checked={values.autoUpdateEnabled}
-              onCheckedChange={(next) => update({ autoUpdateEnabled: next })}
-              disabled={disabled}
-            />
-            <Field
-              label={t("config_page.auto_update_channel")}
-              hint={t("config_page.auto_update_channel_desc")}
-            >
-              <Select
-                aria-label={t("config_page.auto_update_channel")}
-                value={values.autoUpdateChannel}
-                onChange={(value) =>
-                  update({ autoUpdateChannel: value === "dev" ? "dev" : "main" })
-                }
-                options={[
-                  { value: "main", label: t("config_page.auto_update_channel_main") },
-                  { value: "dev", label: t("config_page.auto_update_channel_dev") },
-                ]}
-              />
-            </Field>
-            <Field
-              label={t("config_page.auto_update_docker_image")}
-              hint={t("config_page.auto_update_docker_image_desc")}
-            >
-              <TextInput
-                aria-label={t("config_page.auto_update_docker_image")}
-                value={values.autoUpdateDockerImage}
-                onChange={(e) => update({ autoUpdateDockerImage: e.currentTarget.value })}
-                placeholder="ghcr.io/bjxg/aigw"
-                disabled={disabled}
-              />
-              <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
-                {t("config_page.auto_update_docker_image_warning")}
-              </p>
-            </Field>
+
           </div>
         </Card>
 
