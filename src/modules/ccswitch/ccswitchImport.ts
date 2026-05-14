@@ -94,30 +94,7 @@ const encodeBase64 = (value: string): string => {
 };
 
 export function buildCcSwitchUsageScript(): string {
-  return `({
-  request: {
-    url: "{{baseUrl}}/v0/management/public/usage",
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ api_key: "{{apiKey}}" })
-  },
-  extractor: function(response) {
-    var usage = response && response.usage ? response.usage : {};
-    var apis = usage.apis || {};
-    var keys = Object.keys(apis);
-    var item = keys.length > 0 ? apis[keys[0]] || {} : {};
-    var requests = Number(item.total_requests || usage.total_requests || 0) || 0;
-    var tokens = Number(item.total_tokens || usage.total_tokens || 0) || 0;
-    return {
-      planName: "CliProxy",
-      isValid: response && response.found === false ? false : true,
-      used: requests,
-      remaining: null,
-      unit: "requests",
-      extra: String(tokens) + " tokens"
-    };
-  }
-})`;
+  return "";
 }
 
 export function pickCcSwitchDefaultModel(
@@ -211,10 +188,7 @@ export function buildCcSwitchImportUrl(input: {
     icon: client.icon,
     configFormat: "json",
     enabled: String(input.enabled ?? true),
-    usageEnabled: "true",
-    usageBaseUrl: importConfig.usageBaseUrl,
-    usageScript: encodeBase64(buildCcSwitchUsageScript()),
-    usageAutoInterval: String(importConfig.usageAutoInterval),
+    usageEnabled: "false",
   });
 
   const model = String(input.model ?? importConfig.model ?? "").trim();

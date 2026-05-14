@@ -6,12 +6,6 @@ import {
   resolveCcSwitchImportConfig,
 } from "@/modules/ccswitch/ccswitchImport";
 
-const decodeUsageScript = (url: string) => {
-  const encoded = new URL(url).searchParams.get("usageScript");
-  expect(encoded).toBeTruthy();
-  return atob(encoded!);
-};
-
 describe("ccswitchImport", () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -69,15 +63,8 @@ describe("ccswitchImport", () => {
     expect(parsed.searchParams.get("icon")).toBe("codex");
     expect(parsed.searchParams.get("model")).toBe("gpt-5.5");
     expect(parsed.searchParams.get("configFormat")).toBe("json");
-    expect(parsed.searchParams.get("usageEnabled")).toBe("true");
-    expect(parsed.searchParams.get("usageBaseUrl")).toBe("https://relay.example.com");
-    expect(parsed.searchParams.get("usageAutoInterval")).toBe("30");
+    expect(parsed.searchParams.get("usageEnabled")).toBe("false");
     expect(parsed.searchParams.get("enabled")).toBe("true");
-
-    const usageScript = decodeUsageScript(url);
-    expect(usageScript).toContain("{{baseUrl}}/v0/management/public/usage");
-    expect(usageScript).toContain('method: "POST"');
-    expect(usageScript).toContain('api_key: "{{apiKey}}"');
   });
 
   test("builds a provider deeplink for a selected channel group route and enabled state", () => {

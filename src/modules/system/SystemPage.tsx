@@ -8,7 +8,6 @@ import {
   GitBranch,
   CalendarClock,
   MonitorSmartphone,
-  KeyRound,
   RefreshCw,
   Search,
   Server,
@@ -402,8 +401,6 @@ export function SystemPage({
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [models]);
 
-  const apiKeyLookupUrl = `${window.location.origin}/manage/apikey-lookup`;
-
   return (
     <div className="min-w-0 space-y-6 overflow-x-hidden">
       {/* ── Header ── */}
@@ -454,12 +451,6 @@ export function SystemPage({
           icon={MonitorSmartphone}
           label={t("system_page.ui_version")}
           value={__APP_VERSION__ || "--"}
-        />
-        <InfoCard
-          icon={KeyRound}
-          label={t("system_page.api_key_lookup")}
-          value={apiKeyLookupUrl}
-          link
         />
       </div>
 

@@ -63,9 +63,6 @@ const ModelsPage = lazy(() =>
 const ProxiesPage = lazy(() =>
   import("@/modules/proxies/ProxiesPage").then((m) => ({ default: m.ProxiesPage })),
 );
-const ApiKeyLookupPage = lazy(() =>
-  import("@/modules/apikey-lookup/ApiKeyLookupPage").then((m) => ({ default: m.ApiKeyLookupPage })),
-);
 const ImageGenerationPage = lazy(() =>
   import("@/modules/image-generation/ImageGenerationPage").then((m) => ({
     default: m.ImageGenerationPage,
@@ -80,10 +77,7 @@ export function AppRouter() {
         <div className="font-sans antialiased">
           <Suspense>
             <Routes>
-              {/* Public page – outside AuthProvider to avoid triggering /management/config */}
-              <Route path="/apikey-lookup" element={<ApiKeyLookupPage />} />
-
-              {/* Everything else requires AuthProvider for session management */}
+              {/* Everything requires AuthProvider for session management */}
               <Route
                 path="*"
                 element={
