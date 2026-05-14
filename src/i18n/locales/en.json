@@ -1585,6 +1585,9 @@
     "apply": "Apply",
     "no_data": "No data available",
     "requests": "Requests",
+    "all_keys": "All Keys",
+    "search_keys": "Search keys",
+    "filter_key": "Filter by key",
     "kpi": {
       "requests": "Requests",
       "success": "Success",

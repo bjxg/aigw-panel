@@ -1600,6 +1600,9 @@
     "apply": "查看",
     "no_data": "暂无数据",
     "requests": "请求",
+    "all_keys": "全部密钥",
+    "search_keys": "搜索密钥",
+    "filter_key": "筛选密钥",
     "kpi": {
       "requests": "请求数",
       "success": "成功",

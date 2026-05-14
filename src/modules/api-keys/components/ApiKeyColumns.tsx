@@ -42,7 +42,7 @@ export const createApiKeyColumns = ({
   {
     key: "status",
     label: t("api_keys_page.col_status"),
-    width: "w-[88px] min-w-[88px]",
+    width: "w-[72px] min-w-[72px]",
     headerClassName: "text-center",
     cellClassName: "text-center",
     render: (row, idx) => (
@@ -67,7 +67,7 @@ export const createApiKeyColumns = ({
   {
     key: "name",
     label: t("api_keys_page.col_name"),
-    width: "w-[120px] min-w-[120px]",
+    width: "w-[100px] min-w-[100px]",
     cellClassName: "font-medium",
     render: (row) => (
       <OverflowTooltip content={row.name || t("api_keys_page.unnamed")} className="block min-w-0">
@@ -82,7 +82,7 @@ export const createApiKeyColumns = ({
   {
     key: "user",
     label: t("api_keys_page.col_user"),
-    width: "w-[100px] min-w-[100px]",
+    width: "w-[90px] min-w-[90px]",
     cellClassName: "text-slate-700 dark:text-white/70",
     render: (row) => {
       const uid = row["user-id"];
@@ -98,7 +98,7 @@ export const createApiKeyColumns = ({
   {
     key: "key",
     label: t("api_keys_page.col_key"),
-    width: "w-[320px] min-w-[320px]",
+    width: "w-[200px] min-w-[200px]",
     cellClassName: "whitespace-nowrap",
     render: (row) => (
       <code className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-700 dark:bg-neutral-800 dark:text-white/70">
@@ -109,7 +109,7 @@ export const createApiKeyColumns = ({
   {
     key: "dailyLimit",
     label: t("api_keys_page.col_daily_limit"),
-    width: "w-[132px] min-w-[132px]",
+    width: "w-[96px] min-w-[96px]",
     cellClassName: "whitespace-nowrap text-slate-700 dark:text-white/70",
     render: (row) => (
       <span className="inline-flex items-center gap-1">
@@ -126,7 +126,7 @@ export const createApiKeyColumns = ({
   {
     key: "totalQuota",
     label: t("api_keys_page.col_total_quota"),
-    width: "w-[132px] min-w-[132px]",
+    width: "w-[96px] min-w-[96px]",
     cellClassName: "whitespace-nowrap text-slate-700 dark:text-white/70",
     render: (row) => (
       <span className="inline-flex items-center gap-1">
@@ -143,7 +143,7 @@ export const createApiKeyColumns = ({
   {
     key: "spendingLimit",
     label: t("api_keys_page.col_spending_limit"),
-    width: "w-[148px] min-w-[148px]",
+    width: "w-[110px] min-w-[110px]",
     cellClassName: "whitespace-nowrap text-slate-700 dark:text-white/70",
     headerRender: () => (
       <HoverTooltip
@@ -169,7 +169,7 @@ export const createApiKeyColumns = ({
   {
     key: "rpmLimit",
     label: "RPM",
-    width: "w-[108px] min-w-[108px]",
+    width: "w-[84px] min-w-[84px]",
     cellClassName: "whitespace-nowrap text-slate-700 dark:text-white/70",
     headerRender: () => (
       <HoverTooltip content={t("api_keys.rpm_full")} className="inline-flex items-center gap-1">
@@ -192,7 +192,7 @@ export const createApiKeyColumns = ({
   {
     key: "tpmLimit",
     label: "TPM",
-    width: "w-[108px] min-w-[108px]",
+    width: "w-[84px] min-w-[84px]",
     cellClassName: "whitespace-nowrap text-slate-700 dark:text-white/70",
     headerRender: () => (
       <HoverTooltip content={t("api_keys.tpm_full")} className="inline-flex items-center gap-1">
@@ -215,7 +215,7 @@ export const createApiKeyColumns = ({
   {
     key: "allowedModels",
     label: t("api_keys_page.col_models"),
-    width: "w-[150px] min-w-[150px]",
+    width: "w-[110px] min-w-[110px]",
     cellClassName: "min-w-0 overflow-hidden text-slate-700 dark:text-white/70",
     render: (row) =>
       row["allowed-models"]?.length ? (
@@ -253,7 +253,7 @@ export const createApiKeyColumns = ({
   {
     key: "allowedChannelGroups",
     label: t("api_keys_page.col_channel_groups"),
-    width: "w-[172px] min-w-[172px]",
+    width: "w-[120px] min-w-[120px]",
     cellClassName: "min-w-0 overflow-hidden text-slate-700 dark:text-white/70",
     render: (row) =>
       row["allowed-channel-groups"]?.length ? (
@@ -290,7 +290,7 @@ export const createApiKeyColumns = ({
   {
     key: "allowedChannels",
     label: t("api_keys_page.col_channels"),
-    width: "w-[172px] min-w-[172px]",
+    width: "w-[120px] min-w-[120px]",
     cellClassName: "min-w-0 overflow-hidden text-slate-700 dark:text-white/70",
     render: (row) =>
       row["allowed-channels"]?.length ? (
@@ -327,14 +327,14 @@ export const createApiKeyColumns = ({
   {
     key: "createdAt",
     label: t("api_keys_page.col_created"),
-    width: "w-[168px] min-w-[168px]",
+    width: "w-[130px] min-w-[130px]",
     cellClassName: "whitespace-nowrap text-slate-500 dark:text-white/50",
     render: (row) => <>{formatApiKeyDate(row["created-at"])}</>,
   },
   {
     key: "actions",
     label: t("api_keys_page.col_actions"),
-    width: "w-[188px] min-w-[188px]",
+    width: "w-[140px] min-w-[140px]",
     render: (row, idx) => {
       const viewUsageLabel = t("api_keys_page.view_usage");
       const copyKeyLabel = t("api_keys_page.copy_key");
