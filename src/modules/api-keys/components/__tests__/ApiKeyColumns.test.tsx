@@ -15,7 +15,6 @@ const t = ((key: string) => {
     "api_keys_page.unlimited": "Unlimited",
     "api_keys_page.view_usage": "View usage",
     "api_keys_page.copy_key": "Copy key",
-    "ccswitch.import_to_ccswitch": "Import to CC Switch",
     "common.edit": "Edit",
     "common.delete": "Delete",
   };
@@ -68,7 +67,6 @@ describe("ApiKeyColumns", () => {
       onCopy: vi.fn(),
       onDelete: vi.fn(),
       onEdit: vi.fn(),
-      onImportToCcSwitch: vi.fn(),
       onToggleDisable: vi.fn(),
       onViewUsage: vi.fn(),
     });
@@ -94,7 +92,6 @@ describe("ApiKeyColumns", () => {
       onCopy: vi.fn(),
       onDelete: vi.fn(),
       onEdit: vi.fn(),
-      onImportToCcSwitch: vi.fn(),
       onToggleDisable: vi.fn(),
       onViewUsage: vi.fn(),
     });
@@ -116,7 +113,6 @@ describe("ApiKeyColumns", () => {
       onCopy: vi.fn(),
       onDelete: vi.fn(),
       onEdit: vi.fn(),
-      onImportToCcSwitch: vi.fn(),
       onToggleDisable: vi.fn(),
       onViewUsage: vi.fn(),
     });
