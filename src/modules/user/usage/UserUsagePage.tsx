@@ -304,26 +304,13 @@ export function UserUsagePage() {
 
   const handleGenerateKey = useCallback(async () => {
     try {
-      const resp = await generateUserAPIKey();
-      const newKey: UserAPIKeyItem = {
-        id: resp.id,
-        key: resp.key,
-        name: resp.name || "",
-        disabled: resp.disabled,
-        daily_limit: 0,
-        total_quota: 0,
-        spending_limit: 0,
-        concurrency_limit: 0,
-        rpm_limit: 0,
-        tpm_limit: 0,
-        channel_groups: [],
-      };
-      setApiKeys((prev) => [newKey, ...prev]);
+      await generateUserAPIKey();
+      await fetchAPIKeys();
     } catch (err) {
       const message = err instanceof Error ? err.message : "生成密钥失败";
       setError(message);
     }
-  }, []);
+  }, [fetchAPIKeys]);
 
   const handleSubmit = useCallback(
     (event?: React.FormEvent) => {
