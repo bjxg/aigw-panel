@@ -224,10 +224,13 @@ function ApiKeyCard({
                     <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-white/50">
                       <Server size={12} />
                       <span>{t("apikey_lookup.api_endpoints")}</span>
+                      <span className="inline-flex rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-white/10 dark:text-white/50">
+                        {group.paths[0]?.protocol === "anthropic" ? "Anthropic" : "OpenAI"}
+                      </span>
                     </div>
                     <div className="mt-1 flex flex-wrap gap-2">
-                      {group.paths.map((path) => (
-                        <CopyPath key={path} path={path} />
+                      {group.paths.map((item) => (
+                        <CopyPath key={item.path} path={item.path} />
                       ))}
                     </div>
                   </div>

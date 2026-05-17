@@ -64,6 +64,7 @@ export type RoutingPathRouteEntry = {
   group: string;
   stripPrefix: boolean;
   fallback: RoutingFallback;
+  protocol: "openai" | "anthropic";
 };
 
 export type VisualConfigValues = {

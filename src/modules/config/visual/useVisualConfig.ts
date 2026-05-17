@@ -304,6 +304,7 @@ function parseRoutingPathRoutes(raw: unknown): RoutingPathRouteEntry[] {
       group: typeof record.group === "string" ? record.group : "",
       stripPrefix: record["strip-prefix"] !== false,
       fallback: parseRoutingFallback(record.fallback),
+      protocol: record.protocol === "anthropic" ? "anthropic" : "openai",
     };
   });
 }
@@ -429,6 +430,9 @@ function serializeRoutingPathRoutesForYaml(
       }
       if (route.fallback !== "none") {
         item.fallback = route.fallback;
+      }
+      if (route.protocol === "anthropic") {
+        item.protocol = "anthropic";
       }
       return item;
     })

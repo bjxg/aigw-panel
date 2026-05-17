@@ -92,9 +92,14 @@ export async function fetchUserLogContent(params: {
   });
 }
 
+export interface UserAPIKeyPathItem {
+  path: string;
+  protocol: string;
+}
+
 export interface UserAPIKeyGroupItem {
   name: string;
-  paths: string[];
+  paths: UserAPIKeyPathItem[];
   models: string[];
 }
 

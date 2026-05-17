@@ -61,6 +61,7 @@ const EMPTY_ROUTE_DRAFT = (): RoutingPathRouteEntry => ({
   group: "",
   stripPrefix: true,
   fallback: "none",
+  protocol: "openai",
 });
 
 function Field({
@@ -1217,7 +1218,7 @@ export function RoutingConfigEditor({
                     </Field>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-1">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <Field
                       label={t("channel_groups_page.route_path_label")}
                       hint={t("channel_groups_page.route_path_hint")}
@@ -1229,6 +1230,29 @@ export function RoutingConfigEditor({
                         }
                         placeholder="/pro"
                         disabled={disabled}
+                      />
+                    </Field>
+                    <Field label={t("channel_groups_page.protocol_label")}>
+                      <Select
+                        aria-label={t("channel_groups_page.protocol_label")}
+                        value={primaryRoute.protocol}
+                        disabled={disabled}
+                        className="w-full"
+                        options={[
+                          {
+                            value: "openai",
+                            label: t("channel_groups_page.protocol_openai"),
+                          },
+                          {
+                            value: "anthropic",
+                            label: t("channel_groups_page.protocol_anthropic"),
+                          },
+                        ]}
+                        onChange={(value) =>
+                          updatePrimaryRoute({
+                            protocol: value as "openai" | "anthropic",
+                          })
+                        }
                       />
                     </Field>
                   </div>

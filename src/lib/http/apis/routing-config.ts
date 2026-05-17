@@ -16,6 +16,7 @@ export interface RoutingConfigPathRouteItem {
   group?: string;
   "strip-prefix"?: boolean;
   fallback?: "none" | "default";
+  protocol?: "openai" | "anthropic";
 }
 
 export interface RoutingConfigItem {

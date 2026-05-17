@@ -87,6 +87,7 @@ function hydrateRoutingValues(payload: RoutingConfigItem | undefined): VisualCon
         group: String(route?.group ?? ""),
         stripPrefix: route?.["strip-prefix"] !== false,
         fallback: route?.fallback === "default" ? "default" : "none",
+        protocol: route?.protocol === "anthropic" ? "anthropic" : "openai",
       }))
     : [];
   return next;
@@ -141,6 +142,7 @@ function serializeRoutingValues(values: VisualConfigValues): RoutingConfigItem {
       group,
       "strip-prefix": route.stripPrefix,
       fallback: route.fallback,
+      protocol: route.protocol === "anthropic" ? "anthropic" : "openai",
     });
     return acc;
   }, []);

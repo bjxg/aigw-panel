@@ -358,6 +358,7 @@ describe("RoutingConfigEditor", () => {
               group: "team-a",
               stripPrefix: true,
               fallback: "none",
+              protocol: "openai",
             },
           ],
         }}
@@ -411,6 +412,7 @@ describe("RoutingConfigEditor", () => {
               group: "legacy",
               stripPrefix: true,
               fallback: "none",
+              protocol: "openai",
             },
           ],
         }}
