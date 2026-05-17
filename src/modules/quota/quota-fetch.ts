@@ -1,4 +1,4 @@
-import { apiCallApi, authFilesApi, getApiCallErrorMessage } from "@/lib/http/apis";
+import { apiCallApi, getApiCallErrorMessage } from "@/lib/http/apis";
 import type { ApiCallResult, AuthFileItem } from "@/lib/http/types";
 import {
   ANTIGRAVITY_QUOTA_URLS,
@@ -63,27 +63,11 @@ export const isQuotaSupportedAuthFile = (file: AuthFileItem): boolean =>
   resolveQuotaProvider(file) !== null;
 
 const resolveAntigravityProjectId = async (file: AuthFileItem): Promise<string> => {
-  try {
-    const text = await authFilesApi.downloadText(file.name);
-    const trimmed = text.trim();
-    if (!trimmed) return DEFAULT_ANTIGRAVITY_PROJECT_ID;
-    const parsed = JSON.parse(trimmed) as Record<string, unknown>;
-    const top = normalizeStringValue(parsed.project_id ?? parsed.projectId);
-    if (top) return top;
-    const installed = isRecord(parsed.installed)
-      ? (parsed.installed as Record<string, unknown>)
-      : null;
-    const installedId = installed
-      ? normalizeStringValue(installed.project_id ?? installed.projectId)
-      : null;
-    if (installedId) return installedId;
-    const web = isRecord(parsed.web) ? (parsed.web as Record<string, unknown>) : null;
-    const webId = web ? normalizeStringValue(web.project_id ?? web.projectId) : null;
-    if (webId) return webId;
-  } catch {
-    return DEFAULT_ANTIGRAVITY_PROJECT_ID;
-  }
-  return DEFAULT_ANTIGRAVITY_PROJECT_ID;
+  return (
+    normalizeStringValue(file.project_id ?? file.projectId) ??
+    normalizeStringValue(file.metadata_project_id ?? file.metadataProjectId) ??
+    DEFAULT_ANTIGRAVITY_PROJECT_ID
+  );
 };
 
 const isClaudeOAuthLikeFile = (file: AuthFileItem): boolean => {

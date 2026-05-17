@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   request: vi.fn(),
-  downloadText: vi.fn(),
 }));
 
 vi.mock("@/lib/http/apis", async (importOriginal) => {
@@ -13,10 +12,6 @@ vi.mock("@/lib/http/apis", async (importOriginal) => {
       ...mod.apiCallApi,
       request: mocks.request,
     },
-    authFilesApi: {
-      ...mod.authFilesApi,
-      downloadText: mocks.downloadText,
-    },
   };
 });
 
@@ -24,7 +19,6 @@ import { fetchQuota, resolveQuotaProvider } from "@/modules/quota/quota-fetch";
 
 beforeEach(() => {
   mocks.request.mockReset();
-  mocks.downloadText.mockReset();
 });
 
 describe("resolveQuotaProvider", () => {
@@ -56,9 +50,6 @@ describe("resolveQuotaProvider", () => {
 
 describe("fetchQuota for antigravity", () => {
   test("requests fetchAvailableModels with the auth project and returns dynamic quota items", async () => {
-    mocks.downloadText.mockResolvedValueOnce(
-      JSON.stringify({ project_id: "bamboo-precept-lgxtn" }),
-    );
     mocks.request.mockResolvedValueOnce({
       statusCode: 200,
       header: {},
@@ -127,10 +118,10 @@ describe("fetchQuota for antigravity", () => {
     const result = await fetchQuota("antigravity", {
       name: "antigravity.json",
       provider: "antigravity",
+      project_id: "bamboo-precept-lgxtn",
       auth_index: "ag-1",
     } as any);
 
-    expect(mocks.downloadText).toHaveBeenCalledWith("antigravity.json");
     expect(mocks.request).toHaveBeenCalledWith(
       expect.objectContaining({
         authIndex: "ag-1",
@@ -252,7 +243,6 @@ describe("fetchQuota for kimi", () => {
       auth_index: "9",
     } as any);
 
-    expect(mocks.downloadText).not.toHaveBeenCalled();
     expect(mocks.request).toHaveBeenCalledWith(
       expect.objectContaining({
         authIndex: "9",

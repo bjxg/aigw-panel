@@ -1,13 +1,5 @@
-import { authFilesApi, providersApi } from "@/lib/http/apis";
-import { apiClient } from "@/lib/http/client";
-import type {
-  AuthFileItem,
-  OpenAIProvider,
-  ProviderModel,
-  ProviderSimpleConfig,
-} from "@/lib/http/types";
-
-const AUTH_FILES_MODEL_OWNER_GROUP_MAP_KEY = "authFilesPage.modelOwnerGroupMap.v1";
+import { modelsApi, providersApi } from "@/lib/http/apis";
+import type { OpenAIProvider, ProviderModel, ProviderSimpleConfig } from "@/lib/http/types";
 
 const normalizeProviderKey = (value: string): string => value.trim().toLowerCase();
 
@@ -24,24 +16,6 @@ const matchesModelPattern = (modelId: string, pattern: string): boolean => {
   } catch {
     return false;
   }
-};
-
-const readAuthFilesModelOwnerGroupMap = (): Record<string, string> => {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(AUTH_FILES_MODEL_OWNER_GROUP_MAP_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw) as Record<string, string>;
-  } catch {
-    return {};
-  }
-};
-
-const resolveFileType = (file: AuthFileItem): string => {
-  const type = typeof file.type === "string" ? file.type : "";
-  const provider = typeof file.provider === "string" ? file.provider : "";
-  const fromName = String(file.name || "").split(".")[0] ?? "";
-  return normalizeProviderKey(type || provider || fromName) || "unknown";
 };
 
 export type ModelAvailabilityItem = {
@@ -106,9 +80,6 @@ export const emptyModelPricing = (): ModelPricing => ({
   pricePerCall: 0,
 });
 
-const normalizeOwnerValue = (value: string): string =>
-  value.trim().replace(/\s+/g, "-").toLowerCase();
-
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 
@@ -160,9 +131,6 @@ export const normalizeModelConfigMetadataRows = (payload: unknown): ModelConfigM
     .filter((item): item is ModelConfigMetadataItem => Boolean(item))
     .sort((a, b) => a.id.localeCompare(b.id));
 };
-
-const normalizeModelConfigRows = (payload: unknown): ModelAvailabilityItem[] =>
-  normalizeModelConfigMetadataRows(payload);
 
 const addModel = (
   map: Map<string, ModelAvailabilityItem>,
@@ -245,7 +213,7 @@ const hasOpenAIProviderCredential = (provider: OpenAIProvider): boolean =>
 
 const loadStaticDefinitions = async (provider: string): Promise<ModelDefinition[]> => {
   try {
-    return await authFilesApi.getModelDefinitions(provider);
+    return await modelsApi.getStaticModelDefinitions(provider);
   } catch {
     return [];
   }
@@ -292,84 +260,13 @@ const loadProviderModelItems = async (): Promise<ModelAvailabilityItem[]> => {
   return Array.from(map.values());
 };
 
-const loadAuthFiles = async (): Promise<AuthFileItem[]> => {
-  try {
-    const payload = await authFilesApi.list();
-    return Array.isArray(payload.files) ? payload.files : [];
-  } catch {
-    return [];
-  }
-};
-
-const authFileDisabled = (file: AuthFileItem): boolean => {
-  const value = file.disabled;
-  return value === true || String(value ?? "").toLowerCase() === "true";
-};
-
-const loadAuthFileModelItems = async (
-  authFiles: AuthFileItem[],
-  libraryModels: ModelAvailabilityItem[],
-): Promise<{ items: ModelAvailabilityItem[]; scoped: boolean }> => {
-  const map = new Map<string, ModelAvailabilityItem>();
-  const ownerByAuthGroup = readAuthFilesModelOwnerGroupMap();
-  const modelsByOwner = new Map<string, ModelAvailabilityItem[]>();
-  const activeAuthFiles = authFiles.filter((file) => !authFileDisabled(file));
-  let scoped = authFiles.length > 0 && activeAuthFiles.length === 0;
-
-  for (const model of libraryModels) {
-    const owner = normalizeOwnerValue(model.owned_by ?? "");
-    if (!owner) continue;
-    const list = modelsByOwner.get(owner) ?? [];
-    list.push(model);
-    modelsByOwner.set(owner, list);
-  }
-
-  await Promise.all(
-    activeAuthFiles.map(async (file) => {
-      const group = normalizeProviderKey(resolveFileType(file));
-      const owner = normalizeOwnerValue(ownerByAuthGroup[group] ?? "");
-      if (owner) {
-        scoped = true;
-        for (const model of modelsByOwner.get(owner) ?? []) {
-          addModel(map, { ...model, source: model.source || "auth-file-owner" });
-        }
-        return;
-      }
-
-      try {
-        const liveModels = await authFilesApi.getModelsForAuthFile(file.name);
-        scoped = true;
-        for (const model of liveModels) {
-          addModel(map, {
-            id: model.id,
-            owned_by: model.owned_by,
-            description: model.display_name,
-            source: "auth-file",
-          });
-        }
-      } catch {
-        // Older backends may not expose per-file model lookup. Keep the caller on its fallback path.
-      }
-    }),
-  );
-
-  return { items: Array.from(map.values()), scoped };
-};
-
 export const loadConfiguredModelAvailability = async (): Promise<ConfiguredModelAvailability> => {
-  const [authFiles, libraryPayload, providerItems] = await Promise.all([
-    loadAuthFiles(),
-    apiClient.get("/model-configs?scope=library").catch(() => null),
-    loadProviderModelItems(),
-  ]);
-  const libraryModels = normalizeModelConfigRows(libraryPayload);
-  const authFileAvailability = await loadAuthFileModelItems(authFiles, libraryModels);
+  const providerItems = await loadProviderModelItems();
 
   const map = new Map<string, ModelAvailabilityItem>();
-  for (const item of authFileAvailability.items) addModel(map, item);
   for (const item of providerItems) addModel(map, item);
 
-  if (!authFileAvailability.scoped && providerItems.length === 0) {
+  if (providerItems.length === 0) {
     return emptyAvailability();
   }
 

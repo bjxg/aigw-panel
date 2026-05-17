@@ -84,11 +84,6 @@ export interface AuthFileItem extends TagDisplayFields {
   [key: string]: unknown;
 }
 
-export interface AuthFilesResponse {
-  files: AuthFileItem[];
-  total?: number;
-}
-
 export interface UsageDetail {
   timestamp: string;
   failed: boolean;

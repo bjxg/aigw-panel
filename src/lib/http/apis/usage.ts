@@ -218,7 +218,6 @@ export interface DashboardSummary {
     codex_keys: number;
     vertex_keys: number;
     openai_providers: number;
-    auth_files: number;
   };
   days: number;
 }

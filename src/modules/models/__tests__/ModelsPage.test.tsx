@@ -87,9 +87,6 @@ describe("ModelsPage", () => {
           ],
         });
       }
-      if (path === "/auth-files") {
-        return Promise.resolve({ files: [] });
-      }
       if (
         path === "/gemini-api-key" ||
         path === "/claude-api-key" ||
@@ -153,11 +150,7 @@ describe("ModelsPage", () => {
     expect(screen.queryByRole("button", { name: /Delete selected/ })).not.toBeInTheDocument();
   });
 
-  test("filters current models by auth-file model owner group mapping", async () => {
-    window.localStorage.setItem(
-      "authFilesPage.modelOwnerGroupMap.v1",
-      JSON.stringify({ claude: "anthropic" }),
-    );
+  test("filters current models by configured provider channels", async () => {
     mocks.apiGet.mockImplementation((path: string) => {
       if (path === "/model-configs?scope=active" || path === "/model-configs") {
         return Promise.resolve({
@@ -203,19 +196,22 @@ describe("ModelsPage", () => {
           ],
         });
       }
-      if (path === "/auth-files") {
+      if (path === "/model-definitions/claude") {
         return Promise.resolve({
-          files: [{ name: "claude-account.json", type: "claude", disabled: false }],
+          data: [{ id: "claude-3-7-sonnet-latest", owned_by: "anthropic" }],
         });
       }
       if (
         path === "/gemini-api-key" ||
-        path === "/claude-api-key" ||
         path === "/codex-api-key" ||
+        path === "/opencode-go-api-key" ||
         path === "/vertex-api-key" ||
         path === "/openai-compatibility"
       ) {
         return Promise.resolve([]);
+      }
+      if (path === "/claude-api-key") {
+        return Promise.resolve([{ name: "Claude Team", apiKey: "sk-claude" }]);
       }
       if (path === "/model-owner-presets") {
         return Promise.resolve({ data: ownerPresetItems });
@@ -250,9 +246,6 @@ describe("ModelsPage", () => {
       }
       if (path === "/model-configs?scope=library") {
         return Promise.resolve({ data: [] });
-      }
-      if (path === "/auth-files") {
-        return Promise.resolve({ files: [] });
       }
       if (path === "/claude-api-key") {
         return Promise.resolve([

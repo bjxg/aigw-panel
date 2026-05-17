@@ -1,12 +1,8 @@
 import { useCallback, useState } from "react";
 import { apiClient } from "@/lib/http/client";
-import { authFilesApi, providersApi } from "@/lib/http/apis";
+import { providersApi } from "@/lib/http/apis";
 import { channelGroupsApi, type ChannelGroupItem } from "@/lib/http/apis/channel-groups";
-import {
-  normalizeChannelKey,
-  readAuthFileChannelName,
-  VendorIcon,
-} from "@/modules/api-keys/apiKeyPageUtils";
+import { normalizeChannelKey, VendorIcon } from "@/modules/api-keys/apiKeyPageUtils";
 import type { MultiSelectOption } from "@/modules/ui/MultiSelect";
 
 export function useApiKeyPermissionOptions() {
@@ -115,15 +111,13 @@ export function useApiKeyPermissionOptions() {
 
   const loadChannels = useCallback(async () => {
     try {
-      const [geminiKeys, claudeKeys, codexKeys, vertexKeys, openaiProviders, authFiles] =
-        await Promise.all([
-          providersApi.getGeminiKeys().catch(() => []),
-          providersApi.getClaudeConfigs().catch(() => []),
-          providersApi.getCodexConfigs().catch(() => []),
-          providersApi.getVertexConfigs().catch(() => []),
-          providersApi.getOpenAIProviders().catch(() => []),
-          authFilesApi.list().catch(() => ({ files: [] })),
-        ]);
+      const [geminiKeys, claudeKeys, codexKeys, vertexKeys, openaiProviders] = await Promise.all([
+        providersApi.getGeminiKeys().catch(() => []),
+        providersApi.getClaudeConfigs().catch(() => []),
+        providersApi.getCodexConfigs().catch(() => []),
+        providersApi.getVertexConfigs().catch(() => []),
+        providersApi.getOpenAIProviders().catch(() => []),
+      ]);
 
       const seen = new Set<string>();
       const options: MultiSelectOption[] = [];
@@ -150,18 +144,6 @@ export function useApiKeyPermissionOptions() {
       codexKeys.forEach((item) => push(item.name || "", "API", "codex"));
       vertexKeys.forEach((item) => push(item.name || "", "API", "vertex"));
       openaiProviders.forEach((item) => push(item.name || "", "API", "openai"));
-      (authFiles.files || []).forEach((file) => {
-        if (
-          String(file.account_type || "")
-            .trim()
-            .toLowerCase() !== "oauth"
-        )
-          return;
-        const groupKey = String(file.type || file.provider || "")
-          .trim()
-          .toLowerCase();
-        push(readAuthFileChannelName(file), "OAuth", groupKey);
-      });
 
       options.sort((a, b) => a.label.localeCompare(b.label));
       setAvailableChannels(options);

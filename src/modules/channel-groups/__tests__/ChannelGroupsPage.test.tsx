@@ -71,9 +71,15 @@ describe("ChannelGroupsPage", () => {
           data: [{ id: "claude-3-7-sonnet-latest" }, { id: "gpt-should-not-leak" }],
         });
       }
-      if (path === "/auth-files") {
+      if (path === "/model-definitions/claude") {
         return Promise.resolve({
-          files: [{ name: "claude-account.json", type: "claude", disabled: false }],
+          data: [
+            {
+              id: "claude-3-7-sonnet-latest",
+              owned_by: "anthropic",
+              display_name: "Mapped Claude model",
+            },
+          ],
         });
       }
       if (path === "/model-configs?scope=library") {
@@ -100,7 +106,6 @@ describe("ChannelGroupsPage", () => {
       }
       if (
         path === "/gemini-api-key" ||
-        path === "/claude-api-key" ||
         path === "/codex-api-key" ||
         path === "/opencode-go-api-key" ||
         path === "/vertex-api-key" ||
@@ -108,15 +113,14 @@ describe("ChannelGroupsPage", () => {
       ) {
         return Promise.resolve([]);
       }
+      if (path === "/claude-api-key") {
+        return Promise.resolve([{ name: "Team A Claude", apiKey: "sk-claude" }]);
+      }
       return Promise.resolve({});
     });
   });
 
-  test("filters group editor models by the auth-file model owner group mapping", async () => {
-    window.localStorage.setItem(
-      "authFilesPage.modelOwnerGroupMap.v1",
-      JSON.stringify({ claude: "anthropic" }),
-    );
+  test("filters group editor models by configured provider channels", async () => {
     const user = userEvent.setup();
 
     renderPage();
@@ -133,7 +137,6 @@ describe("ChannelGroupsPage", () => {
     expect(await screen.findByRole("table", { name: "允许模型" })).toBeInTheDocument();
     expect(await screen.findByLabelText("claude-3-7-sonnet-latest")).toBeInTheDocument();
     expect(screen.getByText("Mapped Claude model")).toBeInTheDocument();
-    expect(screen.getByText("$3 / $15 / $0.3")).toBeInTheDocument();
     expect(screen.queryByLabelText("gpt-should-not-leak")).not.toBeInTheDocument();
   });
 
@@ -171,7 +174,6 @@ describe("ChannelGroupsPage", () => {
         return Promise.resolve({ data: [] });
       }
       if (
-        path === "/auth-files" ||
         path === "/model-configs?scope=library" ||
         path === "/gemini-api-key" ||
         path === "/claude-api-key" ||

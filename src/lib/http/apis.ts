@@ -3,7 +3,6 @@ export { usageApi } from "./apis/usage";
 export { providersApi } from "./apis/providers";
 export { configFileApi } from "./apis/config-file";
 export { logsApi } from "./apis/logs";
-export { authFilesApi } from "./apis/auth-files";
 export { apiCallApi, getApiCallErrorMessage } from "./apis/api-call";
 export { ampcodeApi } from "./apis/ampcode";
 export { vertexApi } from "./apis/vertex";

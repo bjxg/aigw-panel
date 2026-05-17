@@ -1,4 +1,3 @@
-import type { AuthFileItem } from "@/lib/http/types";
 import type { ApiKeyFormValues } from "@/modules/api-keys/types";
 
 import iconClaude from "@/assets/icons/claude.svg";
@@ -116,13 +115,3 @@ export const formatApiKeySpendingLimit = (limit: number | undefined) => {
 };
 
 export const normalizeChannelKey = (value: string) => value.trim().toLowerCase();
-
-export const readAuthFileChannelName = (file: AuthFileItem): string => {
-  const candidates = [file.label, file.email, file.provider, file.type];
-  for (const candidate of candidates) {
-    if (typeof candidate === "string" && candidate.trim()) {
-      return candidate.trim();
-    }
-  }
-  return "";
-};

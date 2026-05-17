@@ -30,7 +30,6 @@ const mocks = vi.hoisted(() => ({
     }
     return {};
   }),
-  authFilesList: vi.fn(async () => ({ files: [] })),
   getGeminiKeys: vi.fn(async () => []),
   getClaudeConfigs: vi.fn(async () => []),
   getCodexConfigs: vi.fn(async () => []),
@@ -74,10 +73,6 @@ vi.mock("@/lib/http/apis", async (importOriginal) => {
   const mod = await importOriginal<typeof import("@/lib/http/apis")>();
   return {
     ...mod,
-    authFilesApi: {
-      ...mod.authFilesApi,
-      list: mocks.authFilesList,
-    },
     providersApi: {
       ...mod.providersApi,
       getGeminiKeys: mocks.getGeminiKeys,
@@ -159,7 +154,6 @@ describe("ApiKeyPermissionsPage", () => {
     mocks.fetchConfigYaml.mockClear();
     mocks.saveConfigYaml.mockClear();
     mocks.apiClientPut.mockClear();
-    mocks.authFilesList.mockClear();
     mocks.getGeminiKeys.mockResolvedValue([]);
     mocks.getClaudeConfigs.mockResolvedValue([
       { name: "Claude渠道" },

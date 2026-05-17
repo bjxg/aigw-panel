@@ -13,6 +13,13 @@ export type ModelInfo = {
   description?: string;
 };
 
+export type ModelDefinition = {
+  id: string;
+  display_name?: string;
+  type?: string;
+  owned_by?: string;
+};
+
 export type ModelConfigItem = {
   id: string;
   owned_by: string;
@@ -196,6 +203,17 @@ export const modelsApi = {
 
   async getModelOwnerPresets() {
     return normalizeOwnerPresetResponse(await apiClient.get("/model-owner-presets"));
+  },
+
+  async getStaticModelDefinitions(channel: string): Promise<ModelDefinition[]> {
+    const normalized = String(channel ?? "").trim();
+    if (!normalized) return [];
+    const payload = await apiClient.get<{ data?: ModelDefinition[]; models?: ModelDefinition[] }>(
+      `/model-definitions/${encodeURIComponent(normalized)}`,
+    );
+    if (Array.isArray(payload?.data)) return payload.data;
+    if (Array.isArray(payload?.models)) return payload.models;
+    return [];
   },
 
   async fetchV1Models(baseUrl: string, apiKey?: string, headers: Record<string, string> = {}) {
