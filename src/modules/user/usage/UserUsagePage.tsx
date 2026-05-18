@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import aigwLogo from "@/assets/aigw-logo.png";
 import { ThemeToggleButton, useTheme } from "@/modules/ui/ThemeProvider";
 import { LanguageSelector } from "@/modules/ui/LanguageSelector";
+import { useUserAuth } from "@/modules/user/UserAuthProvider";
+import { HelpCircle } from "lucide-react";
 import type { TimeRange } from "@/modules/monitor/monitor-constants";
 import { LogContentModal } from "@/modules/monitor/LogContentModal";
 import {
@@ -78,6 +80,7 @@ function toLogRow(item: PublicLogItem): LogRow {
 
 export function UserUsagePage() {
   const { t } = useTranslation();
+  const { helpUrl } = useUserAuth();
   const {
     state: { mode },
   } = useTheme();
@@ -395,6 +398,18 @@ export function UserUsagePage() {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {helpUrl && (
+              <a
+                href={helpUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-0.5 rounded-xl p-2 text-sm text-slate-600 transition hover:bg-slate-100 dark:text-white/70 dark:hover:bg-white/10"
+                title={t("shell.help")}
+              >
+                <HelpCircle size={16} />
+                <span className="hidden sm:inline">{t("shell.help")}</span>
+              </a>
+            )}
             <LanguageSelector className="inline-flex items-center rounded-xl p-2 text-slate-600 transition hover:bg-slate-100 dark:text-white/70 dark:hover:bg-white/10" />
             <ThemeToggleButton className="rounded-xl p-2 text-slate-600 transition hover:bg-slate-100 dark:text-white/70 dark:hover:bg-white/10" />
           </div>

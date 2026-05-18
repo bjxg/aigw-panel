@@ -71,8 +71,8 @@ export async function callback(code: string, state: string): Promise<LoginRespon
   return res;
 }
 
-export async function getUserInfo(): Promise<{ user: User }> {
-  return fetchJSON<{ user: User }>("/info");
+export async function getUserInfo(): Promise<{ user: User; help_url?: string }> {
+  return fetchJSON<{ user: User; help_url?: string }>("/info");
 }
 
 export async function logout(): Promise<void> {

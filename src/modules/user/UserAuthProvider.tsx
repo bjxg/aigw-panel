@@ -10,6 +10,7 @@ import type { User } from "./user-api";
 
 interface UserAuthContextValue {
   user: User | null;
+  helpUrl: string | null;
   loading: boolean;
   error: string | null;
   refresh: () => void;
@@ -18,6 +19,7 @@ interface UserAuthContextValue {
 
 const UserAuthContext = createContext<UserAuthContextValue>({
   user: null,
+  helpUrl: null,
   loading: true,
   error: null,
   refresh: () => {},
@@ -30,6 +32,7 @@ export function useUserAuth() {
 
 export function UserAuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [helpUrl, setHelpUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { getToken } = useUserAPI();
@@ -38,16 +41,21 @@ export function UserAuthProvider({ children }: { children: React.ReactNode }) {
     const token = getToken();
     if (!token) {
       setUser(null);
+      setHelpUrl(null);
       setLoading(false);
       return;
     }
     setLoading(true);
     setError(null);
     getUserInfo()
-      .then((data) => setUser(data.user))
+      .then((data) => {
+        setUser(data.user);
+        setHelpUrl(data.help_url || null);
+      })
       .catch((err) => {
         setError(err.message || "Failed to fetch user info");
         setUser(null);
+        setHelpUrl(null);
       })
       .finally(() => setLoading(false));
   }, [getToken]);
@@ -57,6 +65,7 @@ export function UserAuthProvider({ children }: { children: React.ReactNode }) {
       .catch(() => {})
       .finally(() => {
         setUser(null);
+        setHelpUrl(null);
         setError(null);
       });
   }, []);
@@ -67,7 +76,7 @@ export function UserAuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <UserAuthContext.Provider
-      value={{ user, loading, error, refresh, signOut }}
+      value={{ user, helpUrl, loading, error, refresh, signOut }}
     >
       {children}
     </UserAuthContext.Provider>
