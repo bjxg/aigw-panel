@@ -93,6 +93,9 @@ export const toRequestLogsRow = (
 ): RequestLogsRow => {
   const isSystemCall = item.api_key_id === 0;
   const userId = item.user_id ?? 0;
+  // Prefer server-provided user_name; fall back to local mapping
+  const userName = item.user_name
+    || (userId && userNameById ? (userNameById.get(userId) ?? "") : "");
   return {
     id: String(item.id),
     timestamp: item.timestamp,
@@ -100,7 +103,7 @@ export const toRequestLogsRow = (
     apiKeyID: item.api_key_id,
     apiKeyName: item.api_key_name || "",
     userId,
-    userName: userId && userNameById ? (userNameById.get(userId) ?? "") : "",
+    userName,
     isSystemCall,
     channelName: item.channel_name || "",
     model: item.model,

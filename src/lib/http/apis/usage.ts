@@ -239,6 +239,7 @@ export interface UsageLogItem {
   api_key_id: number;
   api_key_name: string;
   user_id?: number;
+  user_name?: string;
   model: string;
   source: string;
   channel_name: string;
