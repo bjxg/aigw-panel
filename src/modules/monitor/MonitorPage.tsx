@@ -94,28 +94,26 @@ export function MonitorPage() {
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(true);
   const [isPending] = useTransition();
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const requestIdRef = useRef(0);
   const [apiKeyOptions, setApiKeyOptions] = useState<APIKeyFilterItem[]>([]);
 
   const refreshData = useCallback(async () => {
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = new AbortController();
+    const currentRequestId = ++requestIdRef.current;
     setIsRefreshing(true);
     setError(null);
     try {
-      const chartResp = await usageApi.getChartData(timeRange, apiFilter || undefined, {
-        signal: abortControllerRef.current.signal,
-      });
+      const chartResp = await usageApi.getChartData(timeRange, apiFilter || undefined);
+      if (requestIdRef.current !== currentRequestId) return;
       setChartData(chartResp);
     } catch (requestError) {
-      if (requestError instanceof Error && requestError.name === "AbortError") {
-        return;
-      }
+      if (requestIdRef.current !== currentRequestId) return;
       const message =
         requestError instanceof Error ? requestError.message : t("monitor.failed_fetch");
       setError(message);
     } finally {
-      setIsRefreshing(false);
+      if (requestIdRef.current === currentRequestId) {
+        setIsRefreshing(false);
+      }
     }
   }, [t, timeRange, apiFilter]);
 
@@ -188,9 +186,6 @@ export function MonitorPage() {
 
   useEffect(() => {
     void refreshData();
-    return () => {
-      abortControllerRef.current?.abort();
-    };
   }, [refreshData]);
 
   const modelTotals = useMemo(() => {
@@ -432,9 +427,9 @@ export function MonitorPage() {
 
   useEffect(() => {
     setApikeyDistributionSelected((prev) => {
-      const next = { ...prev };
+      const next: Record<string, boolean> = {};
       for (const item of apikeyDistributionData) {
-        if (!(item.name in next)) next[item.name] = true;
+        next[item.name] = prev[item.name] ?? true;
       }
       return next;
     });

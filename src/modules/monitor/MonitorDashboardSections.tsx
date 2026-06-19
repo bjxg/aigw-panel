@@ -183,7 +183,11 @@ export function MonitorDistributionSections({
             loading={isRefreshing}
           >
             <div className="flex h-auto flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] md:items-center">
-              <EChart option={modelDistributionOption} className="h-56 min-w-0 md:h-[22rem]" />
+              <EChart
+                option={modelDistributionOption}
+                className="h-56 min-w-0 md:h-[22rem]"
+                notMerge
+              />
               <div className="flex h-auto flex-col justify-start gap-2 overflow-y-auto pr-2 md:max-h-[22rem]">
                 {modelDistributionLegend.map((item) => (
                   <button
@@ -284,7 +288,11 @@ export function MonitorDistributionSections({
             loading={isRefreshing}
           >
             <div className="flex h-auto flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] md:items-center">
-              <EChart option={apikeyDistributionOption} className="h-56 min-w-0 md:h-[22rem]" />
+              <EChart
+                option={apikeyDistributionOption}
+                className="h-56 min-w-0 md:h-[22rem]"
+                notMerge
+              />
               <div className="flex h-auto flex-col justify-start gap-2 overflow-y-auto pr-2 md:max-h-[22rem]">
                 {apikeyDistributionLegend.map((item) => (
                   <button
