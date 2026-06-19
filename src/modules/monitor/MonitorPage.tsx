@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { usageApi } from "@/lib/http/apis";
 import type { APIKeyFilterItem } from "@/lib/http/apis/usage";
 import { apiKeyEntriesApi } from "@/lib/http/apis/api-keys";
@@ -93,18 +93,24 @@ export function MonitorPage() {
   >({});
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(true);
-  const [isPending, startTransition] = useTransition();
+  const [isPending] = useTransition();
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [apiKeyOptions, setApiKeyOptions] = useState<APIKeyFilterItem[]>([]);
 
   const refreshData = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
     setIsRefreshing(true);
     setError(null);
     try {
-      const chartResp = await usageApi.getChartData(timeRange, apiFilter || undefined);
-      startTransition(() => {
-        setChartData(chartResp);
+      const chartResp = await usageApi.getChartData(timeRange, apiFilter || undefined, {
+        signal: abortControllerRef.current.signal,
       });
+      setChartData(chartResp);
     } catch (requestError) {
+      if (requestError instanceof Error && requestError.name === "AbortError") {
+        return;
+      }
       const message =
         requestError instanceof Error ? requestError.message : t("monitor.failed_fetch");
       setError(message);
@@ -182,6 +188,9 @@ export function MonitorPage() {
 
   useEffect(() => {
     void refreshData();
+    return () => {
+      abortControllerRef.current?.abort();
+    };
   }, [refreshData]);
 
   const modelTotals = useMemo(() => {

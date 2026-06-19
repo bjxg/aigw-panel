@@ -65,10 +65,16 @@ export const usageApi = {
     };
   },
 
-  async getChartData(days = 7, apiKeyID = 0): Promise<ChartDataResponse> {
+  async getChartData(
+    days = 7,
+    apiKeyID = 0,
+    options?: { signal?: AbortSignal },
+  ): Promise<ChartDataResponse> {
     const qs = new URLSearchParams({ days: String(days) });
     if (apiKeyID > 0) qs.set("api_key_id", String(apiKeyID));
-    const resp = await apiClient.get<ChartDataResponse>(`/usage/chart-data?${qs.toString()}`);
+    const resp = await apiClient.get<ChartDataResponse>(`/usage/chart-data?${qs.toString()}`, {
+      signal: options?.signal,
+    });
     return {
       daily_series: Array.isArray(resp?.daily_series) ? resp.daily_series : [],
       model_distribution: Array.isArray(resp?.model_distribution) ? resp.model_distribution : [],
