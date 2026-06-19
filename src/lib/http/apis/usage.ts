@@ -216,7 +216,6 @@ export interface DashboardSummary {
     gemini_keys: number;
     claude_keys: number;
     codex_keys: number;
-    vertex_keys: number;
     openai_providers: number;
   };
   days: number;

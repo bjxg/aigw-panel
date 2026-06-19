@@ -14,7 +14,6 @@ export type AuthFileType =
   | "codex"
   | "antigravity"
   | "iflow"
-  | "vertex"
   | "empty"
   | "unknown";
 
@@ -194,17 +193,6 @@ export interface ProviderSimpleConfig {
   models?: ProviderModel[];
   excludedModels?: string[];
   skipAnthropicProcessing?: boolean;
-}
-
-export type BedrockAuthMode = "api-key" | "sigv4";
-
-export interface BedrockProviderConfig extends ProviderSimpleConfig {
-  authMode: BedrockAuthMode;
-  accessKeyId?: string;
-  secretAccessKey?: string;
-  sessionToken?: string;
-  region?: string;
-  forceGlobal?: boolean;
 }
 
 export interface LogsQuery {

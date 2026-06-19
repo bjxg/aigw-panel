@@ -10,7 +10,6 @@ const mocks = vi.hoisted(() => ({
   getGeminiKeys: vi.fn(async () => []),
   getClaudeConfigs: vi.fn(async () => []),
   getCodexConfigs: vi.fn(async () => []),
-  getVertexConfigs: vi.fn(async () => []),
   getOpenAIProviders: vi.fn(async () => []),
   saveCodexConfigs: vi.fn(async (_configs: unknown[]) => ({})),
   getEntityStats: vi.fn(async () => ({ source: [] })),
@@ -28,7 +27,6 @@ vi.mock("@/lib/http/apis", async (importOriginal) => {
       getGeminiKeys: mocks.getGeminiKeys,
       getClaudeConfigs: mocks.getClaudeConfigs,
       getCodexConfigs: mocks.getCodexConfigs,
-      getVertexConfigs: mocks.getVertexConfigs,
       getOpenAIProviders: mocks.getOpenAIProviders,
       saveCodexConfigs: mocks.saveCodexConfigs,
     },
@@ -62,7 +60,6 @@ describe("ProvidersPage openai tab", () => {
     mocks.getGeminiKeys.mockReset();
     mocks.getClaudeConfigs.mockReset();
     mocks.getCodexConfigs.mockReset();
-    mocks.getVertexConfigs.mockReset();
     mocks.getOpenAIProviders.mockReset();
     mocks.saveCodexConfigs.mockReset();
     mocks.getEntityStats.mockReset();
@@ -73,7 +70,6 @@ describe("ProvidersPage openai tab", () => {
     mocks.getGeminiKeys.mockImplementation(async () => []);
     mocks.getClaudeConfigs.mockImplementation(async () => []);
     mocks.getCodexConfigs.mockImplementation(async () => []);
-    mocks.getVertexConfigs.mockImplementation(async () => []);
     mocks.saveCodexConfigs.mockImplementation(async () => ({}));
     mocks.apiKeyEntriesList.mockImplementation(async () => []);
     mocks.channelGroupsList.mockImplementation(async () => []);

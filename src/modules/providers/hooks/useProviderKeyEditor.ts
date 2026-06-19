@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/modules/ui/ToastProvider";
-import type { BedrockProviderConfig, ProviderSimpleConfig } from "@/lib/http/types";
+import type { ProviderSimpleConfig } from "@/lib/http/types";
 import { providersApi } from "@/lib/http/apis";
 import { keyValueEntriesToRecord } from "@/modules/providers/KeyValueInputList";
 import {
@@ -15,21 +15,15 @@ import {
   type ProviderKeyDraft,
 } from "@/modules/providers/providers-helpers";
 
-export type ProviderKeyType = "gemini" | "claude" | "codex" | "opencode-go" | "vertex" | "bedrock";
+export type ProviderKeyType = "gemini" | "claude" | "codex";
 
 interface UseProviderKeyEditorArgs {
   geminiKeys: ProviderSimpleConfig[];
   claudeKeys: ProviderSimpleConfig[];
   codexKeys: ProviderSimpleConfig[];
-  openCodeGoKeys: ProviderSimpleConfig[];
-  vertexKeys: ProviderSimpleConfig[];
-  bedrockKeys: BedrockProviderConfig[];
   setGeminiKeys: Dispatch<SetStateAction<ProviderSimpleConfig[]>>;
   setClaudeKeys: Dispatch<SetStateAction<ProviderSimpleConfig[]>>;
   setCodexKeys: Dispatch<SetStateAction<ProviderSimpleConfig[]>>;
-  setOpenCodeGoKeys: Dispatch<SetStateAction<ProviderSimpleConfig[]>>;
-  setVertexKeys: Dispatch<SetStateAction<ProviderSimpleConfig[]>>;
-  setBedrockKeys: Dispatch<SetStateAction<BedrockProviderConfig[]>>;
   refreshAll: () => Promise<void>;
   startRefreshTransition: (action: () => void) => void;
   afterClose: () => void;
@@ -39,15 +33,9 @@ export function useProviderKeyEditor({
   geminiKeys,
   claudeKeys,
   codexKeys,
-  openCodeGoKeys,
-  vertexKeys,
-  bedrockKeys,
   setGeminiKeys,
   setClaudeKeys,
   setCodexKeys,
-  setOpenCodeGoKeys,
-  setVertexKeys,
-  setBedrockKeys,
   refreshAll,
   startRefreshTransition,
   afterClose,
@@ -62,18 +50,8 @@ export function useProviderKeyEditor({
 
   const getListByType = useCallback(
     (type: ProviderKeyType) =>
-      type === "gemini"
-        ? geminiKeys
-        : type === "claude"
-          ? claudeKeys
-          : type === "codex"
-            ? codexKeys
-            : type === "opencode-go"
-              ? openCodeGoKeys
-              : type === "vertex"
-                ? vertexKeys
-                : bedrockKeys,
-    [bedrockKeys, claudeKeys, codexKeys, geminiKeys, openCodeGoKeys, vertexKeys],
+      type === "gemini" ? geminiKeys : type === "claude" ? claudeKeys : codexKeys,
+    [claudeKeys, codexKeys, geminiKeys],
   );
 
   const closeKeyEditor = useCallback(() => {
@@ -102,18 +80,7 @@ export function useProviderKeyEditor({
     }
 
     const apiKey = keyDraft.apiKey.trim();
-    const bedrockAccessKeyId = keyDraft.accessKeyId.trim();
-    const bedrockSecretAccessKey = keyDraft.secretAccessKey.trim();
-    if (editKeyType === "bedrock") {
-      if (keyDraft.authMode === "api-key" && !apiKey) {
-        setKeyDraftError(t("providers.api_key_error"));
-        return null;
-      }
-      if (keyDraft.authMode === "sigv4" && (!bedrockAccessKeyId || !bedrockSecretAccessKey)) {
-        setKeyDraftError(t("providers.bedrock_sigv4_error"));
-        return null;
-      }
-    } else if (!apiKey) {
+    if (!apiKey) {
       setKeyDraftError(t("providers.api_key_error"));
       return null;
     }
@@ -122,44 +89,25 @@ export function useProviderKeyEditor({
     const excludedModels = keyDraft.excludedModelsText.trim()
       ? excludedModelsFromText(keyDraft.excludedModelsText)
       : undefined;
-    const isOpenCodeGo = editKeyType === "opencode-go";
 
-    const requireAlias = editKeyType === "vertex";
-    const modelCommit = commitModelEntries(keyDraft.modelEntries, { requireAlias });
+    const modelCommit = commitModelEntries(keyDraft.modelEntries, { requireAlias: false });
     if (modelCommit.error) {
-      setKeyDraftError(requireAlias ? `Vertex: ${modelCommit.error}` : modelCommit.error);
+      setKeyDraftError(modelCommit.error);
       return null;
     }
 
-    const result: ProviderSimpleConfig | BedrockProviderConfig = {
-      apiKey:
-        editKeyType === "bedrock" && keyDraft.authMode === "sigv4" ? bedrockAccessKeyId : apiKey,
+    const result: ProviderSimpleConfig = {
+      apiKey,
       name,
       ...(keyDraft.prefix.trim() ? { prefix: keyDraft.prefix.trim() } : {}),
-      ...(!isOpenCodeGo && keyDraft.baseUrl.trim() ? { baseUrl: keyDraft.baseUrl.trim() } : {}),
+      ...(keyDraft.baseUrl.trim() ? { baseUrl: keyDraft.baseUrl.trim() } : {}),
       ...(keyDraft.proxyUrl.trim() ? { proxyUrl: keyDraft.proxyUrl.trim() } : {}),
       ...(keyDraft.proxyId.trim() ? { proxyId: keyDraft.proxyId.trim() } : {}),
       ...(headers ? { headers } : {}),
       ...(excludedModels ? { excludedModels } : {}),
-      ...(!isOpenCodeGo && modelCommit.models ? { models: modelCommit.models } : {}),
+      ...(modelCommit.models ? { models: modelCommit.models } : {}),
       ...(editKeyType === "claude" && keyDraft.skipAnthropicProcessing
         ? { skipAnthropicProcessing: true }
-        : {}),
-      ...(editKeyType === "bedrock"
-        ? {
-            authMode: keyDraft.authMode,
-            ...(keyDraft.authMode === "sigv4"
-              ? {
-                  accessKeyId: bedrockAccessKeyId,
-                  secretAccessKey: bedrockSecretAccessKey,
-                  ...(keyDraft.sessionToken.trim()
-                    ? { sessionToken: keyDraft.sessionToken.trim() }
-                    : {}),
-                }
-              : {}),
-            ...(keyDraft.region.trim() ? { region: keyDraft.region.trim() } : {}),
-            ...(keyDraft.forceGlobal ? { forceGlobal: true } : {}),
-          }
         : {}),
     };
 
@@ -187,22 +135,10 @@ export function useProviderKeyEditor({
         const next = apply(claudeKeys);
         await providersApi.saveClaudeConfigs(next);
         setClaudeKeys(next);
-      } else if (type === "codex") {
+      } else {
         const next = apply(codexKeys);
         await providersApi.saveCodexConfigs(next);
         setCodexKeys(next);
-      } else if (type === "opencode-go") {
-        const next = apply(openCodeGoKeys);
-        await providersApi.saveOpenCodeGoConfigs(next);
-        setOpenCodeGoKeys(next);
-      } else if (type === "vertex") {
-        const next = apply(vertexKeys);
-        await providersApi.saveVertexConfigs(next);
-        setVertexKeys(next);
-      } else {
-        const next = apply(bedrockKeys) as BedrockProviderConfig[];
-        await providersApi.saveBedrockConfigs(next);
-        setBedrockKeys(next);
       }
       notify({ type: "success", message: t("providers.saved") });
       closeKeyEditor();
@@ -215,7 +151,6 @@ export function useProviderKeyEditor({
     }
   }, [
     claudeKeys,
-    bedrockKeys,
     closeKeyEditor,
     codexKeys,
     commitKeyDraft,
@@ -223,17 +158,12 @@ export function useProviderKeyEditor({
     editKeyType,
     geminiKeys,
     notify,
-    openCodeGoKeys,
     refreshAll,
     setClaudeKeys,
     setCodexKeys,
-    setBedrockKeys,
     setGeminiKeys,
-    setOpenCodeGoKeys,
-    setVertexKeys,
     startRefreshTransition,
     t,
-    vertexKeys,
   ]);
 
   const deleteKey = useCallback(
@@ -249,18 +179,9 @@ export function useProviderKeyEditor({
         } else if (type === "claude") {
           await providersApi.deleteClaudeConfig(entry.apiKey);
           setClaudeKeys((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
-        } else if (type === "codex") {
+        } else {
           await providersApi.deleteCodexConfig(entry.apiKey);
           setCodexKeys((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
-        } else if (type === "opencode-go") {
-          await providersApi.deleteOpenCodeGoConfig(entry.apiKey);
-          setOpenCodeGoKeys((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
-        } else if (type === "vertex") {
-          await providersApi.deleteVertexConfig(entry.apiKey);
-          setVertexKeys((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
-        } else {
-          await providersApi.deleteBedrockConfig(index);
-          setBedrockKeys((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
         }
         notify({ type: "success", message: t("providers.deleted") });
       } catch (err: unknown) {
@@ -270,35 +191,12 @@ export function useProviderKeyEditor({
         });
       }
     },
-    [
-      getListByType,
-      notify,
-      setBedrockKeys,
-      setClaudeKeys,
-      setCodexKeys,
-      setGeminiKeys,
-      setOpenCodeGoKeys,
-      setVertexKeys,
-      t,
-    ],
+    [getListByType, notify, setClaudeKeys, setCodexKeys, setGeminiKeys, t],
   );
 
   const toggleKeyEnabled = useCallback(
-    async (
-      type: "gemini" | "claude" | "codex" | "opencode-go" | "bedrock",
-      index: number,
-      enabled: boolean,
-    ) => {
-      const list =
-        type === "gemini"
-          ? geminiKeys
-          : type === "claude"
-            ? claudeKeys
-            : type === "codex"
-              ? codexKeys
-              : type === "opencode-go"
-                ? openCodeGoKeys
-                : bedrockKeys;
+    async (type: ProviderKeyType, index: number, enabled: boolean) => {
+      const list = getListByType(type);
       const current = list[index];
       if (!current) return;
       const prev = list;
@@ -317,15 +215,9 @@ export function useProviderKeyEditor({
         } else if (type === "claude") {
           setClaudeKeys(nextList);
           await providersApi.saveClaudeConfigs(nextList);
-        } else if (type === "codex") {
+        } else {
           setCodexKeys(nextList);
           await providersApi.saveCodexConfigs(nextList);
-        } else if (type === "opencode-go") {
-          setOpenCodeGoKeys(nextList);
-          await providersApi.saveOpenCodeGoConfigs(nextList);
-        } else {
-          setBedrockKeys(nextList as BedrockProviderConfig[]);
-          await providersApi.saveBedrockConfigs(nextList as BedrockProviderConfig[]);
         }
         notify({
           type: "success",
@@ -335,9 +227,7 @@ export function useProviderKeyEditor({
       } catch (err: unknown) {
         if (type === "gemini") setGeminiKeys(prev);
         else if (type === "claude") setClaudeKeys(prev);
-        else if (type === "codex") setCodexKeys(prev);
-        else if (type === "opencode-go") setOpenCodeGoKeys(prev);
-        else setBedrockKeys(prev as BedrockProviderConfig[]);
+        else setCodexKeys(prev);
         notify({
           type: "error",
           message: err instanceof Error ? err.message : t("providers.update_failed"),
@@ -346,34 +236,20 @@ export function useProviderKeyEditor({
     },
     [
       claudeKeys,
-      bedrockKeys,
       codexKeys,
       geminiKeys,
       notify,
-      openCodeGoKeys,
       refreshAll,
       setClaudeKeys,
       setCodexKeys,
-      setBedrockKeys,
       setGeminiKeys,
-      setOpenCodeGoKeys,
       startRefreshTransition,
       t,
     ],
   );
 
   const editKeyTitle =
-    editKeyType === "gemini"
-      ? "Gemini"
-      : editKeyType === "claude"
-        ? "Claude"
-        : editKeyType === "codex"
-          ? "Codex"
-          : editKeyType === "opencode-go"
-            ? "OpenCode Go"
-            : editKeyType === "vertex"
-              ? "Vertex"
-              : "Bedrock";
+    editKeyType === "gemini" ? "Gemini" : editKeyType === "claude" ? "Claude" : "Codex";
 
   const editKeyEnabled = useMemo(() => {
     const list = excludedModelsFromText(keyDraft.excludedModelsText);

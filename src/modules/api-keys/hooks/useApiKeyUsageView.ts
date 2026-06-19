@@ -21,7 +21,6 @@ const resolveChannelGroupLabel = (value: string): string => {
     gemini: "Gemini",
     claude: "Claude",
     codex: "Codex",
-    vertex: "Vertex",
     openai: "OpenAI Compatible",
     "gemini-cli": "Gemini CLI",
     antigravity: "Antigravity",

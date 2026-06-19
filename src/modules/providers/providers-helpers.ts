@@ -1,6 +1,4 @@
 import type {
-  BedrockAuthMode,
-  BedrockProviderConfig,
   ProviderModel,
   ProviderSimpleConfig,
   OpenAIProvider,
@@ -88,12 +86,6 @@ export const normalizeDiscoveredModels = (
 export type ProviderKeyDraft = {
   name: string;
   apiKey: string;
-  authMode: BedrockAuthMode;
-  accessKeyId: string;
-  secretAccessKey: string;
-  sessionToken: string;
-  region: string;
-  forceGlobal: boolean;
   prefix: string;
   baseUrl: string;
   proxyUrl: string;
@@ -148,41 +140,20 @@ export const commitModelEntries = (
   return { models: models.length ? models : undefined };
 };
 
-const hasBedrockFields = (
-  input?: ProviderSimpleConfig | BedrockProviderConfig | null,
-): input is BedrockProviderConfig =>
-  !!input &&
-  ("authMode" in input ||
-    "accessKeyId" in input ||
-    "secretAccessKey" in input ||
-    "sessionToken" in input ||
-    "region" in input ||
-    "forceGlobal" in input);
-
 export const buildProviderKeyDraft = (
-  input?: ProviderSimpleConfig | BedrockProviderConfig | null,
-): ProviderKeyDraft => {
-  const bedrockInput = hasBedrockFields(input) ? input : null;
-
-  return {
-    name: input?.name ?? "",
-    apiKey: input?.apiKey ?? "",
-    authMode: bedrockInput?.authMode ?? "api-key",
-    accessKeyId: bedrockInput?.accessKeyId ?? (bedrockInput ? input?.apiKey : "") ?? "",
-    secretAccessKey: bedrockInput?.secretAccessKey ?? "",
-    sessionToken: bedrockInput?.sessionToken ?? "",
-    region: bedrockInput?.region ?? "us-east-1",
-    forceGlobal: bedrockInput?.forceGlobal ?? false,
-    prefix: input?.prefix ?? "",
-    baseUrl: input?.baseUrl ?? "",
-    proxyUrl: input?.proxyUrl ?? "",
-    proxyId: input?.proxyId ?? "",
-    excludedModelsText: excludedModelsToText(input?.excludedModels),
-    headersEntries: recordToKeyValueEntries(input?.headers),
-    modelEntries: buildModelEntries(input?.models),
-    skipAnthropicProcessing: input?.skipAnthropicProcessing ?? false,
-  };
-};
+  input?: ProviderSimpleConfig | null,
+): ProviderKeyDraft => ({
+  name: input?.name ?? "",
+  apiKey: input?.apiKey ?? "",
+  prefix: input?.prefix ?? "",
+  baseUrl: input?.baseUrl ?? "",
+  proxyUrl: input?.proxyUrl ?? "",
+  proxyId: input?.proxyId ?? "",
+  excludedModelsText: excludedModelsToText(input?.excludedModels),
+  headersEntries: recordToKeyValueEntries(input?.headers),
+  modelEntries: buildModelEntries(input?.models),
+  skipAnthropicProcessing: input?.skipAnthropicProcessing ?? false,
+});
 
 export type OpenAIDraft = {
   name: string;
@@ -220,8 +191,6 @@ export const buildOpenAIDraft = (input?: OpenAIProvider | null): OpenAIDraft => 
       : [{ id: `key-${Date.now()}`, apiKey: "", proxyUrl: "", proxyId: "", headersEntries: [] }],
   modelEntries: buildModelEntries(input?.models),
 });
-
-export type AmpMappingEntry = { id: string; from: string; to: string };
 
 export const readString = (obj: Record<string, unknown> | null, ...keys: string[]): string => {
   if (!obj) return "";

@@ -4,7 +4,6 @@
  */
 
 import type { GeminiKeyConfig, ProviderKeyConfig, OpenAIProviderConfig } from "./provider";
-import type { AmpcodeConfig } from "./ampcode";
 
 export interface QuotaExceededConfig {
   switchProject?: boolean;
@@ -57,12 +56,9 @@ export interface Config {
   routingStrategy?: string;
   routing?: RoutingConfig;
   apiKeys?: string[];
-  ampcode?: AmpcodeConfig;
   geminiApiKeys?: GeminiKeyConfig[];
   codexApiKeys?: ProviderKeyConfig[];
-  openCodeGoApiKeys?: ProviderKeyConfig[];
   claudeApiKeys?: ProviderKeyConfig[];
-  vertexApiKeys?: ProviderKeyConfig[];
   openaiCompatibility?: OpenAIProviderConfig[];
   kimiHeaderDefaults?: KimiHeaderDefaults;
   raw?: Record<string, unknown>;
@@ -81,12 +77,9 @@ export type RawConfigSection =
   | "force-model-prefix"
   | "routing/strategy"
   | "api-keys"
-  | "ampcode"
   | "gemini-api-key"
   | "codex-api-key"
-  | "opencode-go-api-key"
   | "claude-api-key"
-  | "vertex-api-key"
   | "openai-compatibility";
 
 export interface ConfigCache {

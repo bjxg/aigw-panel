@@ -111,11 +111,10 @@ export function useApiKeyPermissionOptions() {
 
   const loadChannels = useCallback(async () => {
     try {
-      const [geminiKeys, claudeKeys, codexKeys, vertexKeys, openaiProviders] = await Promise.all([
+      const [geminiKeys, claudeKeys, codexKeys, openaiProviders] = await Promise.all([
         providersApi.getGeminiKeys().catch(() => []),
         providersApi.getClaudeConfigs().catch(() => []),
         providersApi.getCodexConfigs().catch(() => []),
-        providersApi.getVertexConfigs().catch(() => []),
         providersApi.getOpenAIProviders().catch(() => []),
       ]);
 
@@ -142,7 +141,6 @@ export function useApiKeyPermissionOptions() {
       geminiKeys.forEach((item) => push(item.name || "", "API", "gemini"));
       claudeKeys.forEach((item) => push(item.name || "", "API", "claude"));
       codexKeys.forEach((item) => push(item.name || "", "API", "codex"));
-      vertexKeys.forEach((item) => push(item.name || "", "API", "vertex"));
       openaiProviders.forEach((item) => push(item.name || "", "API", "openai"));
 
       options.sort((a, b) => a.label.localeCompare(b.label));

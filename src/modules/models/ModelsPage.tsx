@@ -41,7 +41,6 @@ import {
   type ModelPricingMode,
   normalizeModelConfigMetadataRows,
 } from "@/modules/models/modelAvailability";
-import iconVertex from "@/assets/icons/vertex.svg";
 
 type ModelScope = "active" | "library";
 type ModelPageTab = ModelScope;
@@ -120,7 +119,6 @@ const VENDOR_ICONS: Record<string, { light: string; dark: string }> = {
   o3: { light: iconOpenai, dark: iconOpenai },
   o4: { light: iconOpenai, dark: iconOpenai },
   qwen: { light: iconQwen, dark: iconQwen },
-  vertex: { light: iconVertex, dark: iconVertex },
 };
 
 const emptyForm: ModelFormState = {

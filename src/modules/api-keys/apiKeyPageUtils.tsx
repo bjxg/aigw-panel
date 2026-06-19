@@ -13,7 +13,6 @@ import iconKiro from "@/assets/icons/kiro.svg";
 import iconMinimax from "@/assets/icons/minimax.svg";
 import iconOpenai from "@/assets/icons/openai.svg";
 import iconQwen from "@/assets/icons/qwen.svg";
-import iconVertex from "@/assets/icons/vertex.svg";
 
 const VENDOR_ICONS: Record<string, { light: string; dark: string }> = {
   claude: { light: iconClaude, dark: iconClaude },
@@ -30,7 +29,6 @@ const VENDOR_ICONS: Record<string, { light: string; dark: string }> = {
   codex: { light: iconCodex, dark: iconCodex },
   glm: { light: iconGlm, dark: iconGlm },
   kiro: { light: iconKiro, dark: iconKiro },
-  vertex: { light: iconVertex, dark: iconVertex },
   iflow: { light: iconIflow, dark: iconIflow },
 };
 

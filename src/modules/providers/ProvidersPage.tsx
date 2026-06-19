@@ -1,25 +1,20 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bot, Cloud, Database, FileKey, Globe, RefreshCw } from "lucide-react";
+import { Bot, FileKey, Globe, RefreshCw } from "lucide-react";
 import iconGemini from "@/assets/icons/gemini.svg";
 import iconClaude from "@/assets/icons/claude.svg";
 import iconCodex from "@/assets/icons/codex.svg";
-import iconVertex from "@/assets/icons/vertex.svg";
-import iconAmp from "@/assets/icons/amp.svg";
 import iconOpenai from "@/assets/icons/openai.svg";
-import iconOpenCodeDark from "@/assets/icons/opencode-dark.svg";
-import iconOpenCodeLight from "@/assets/icons/opencode-light.svg";
-import { ampcodeApi, providersApi, usageApi } from "@/lib/http/apis";
+import { providersApi, usageApi } from "@/lib/http/apis";
 import { apiKeyEntriesApi, type ApiKeyEntry } from "@/lib/http/apis/api-keys";
 import { channelGroupsApi, type ChannelGroupItem } from "@/lib/http/apis/channel-groups";
 import { proxiesApi, type ProxyPoolEntry } from "@/lib/http/apis/proxies";
-import type { BedrockProviderConfig, OpenAIProvider, ProviderSimpleConfig } from "@/lib/http/types";
+import type { OpenAIProvider, ProviderSimpleConfig } from "@/lib/http/types";
 import { Button } from "@/modules/ui/Button";
 import { ConfirmModal } from "@/modules/ui/ConfirmModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/modules/ui/Tabs";
 import { useToast } from "@/modules/ui/ToastProvider";
-import { AmpcodePanel } from "@/modules/providers/components/AmpcodePanel";
 import { OpenAIProviderModal } from "@/modules/providers/components/OpenAIProviderModal";
 import { OpenAIProvidersTab } from "@/modules/providers/components/OpenAIProvidersTab";
 import { ProviderKeyModal } from "@/modules/providers/components/ProviderKeyModal";
@@ -29,12 +24,7 @@ import { useProviderKeyEditor } from "@/modules/providers/hooks/useProviderKeyEd
 import { useProviderLatency } from "@/modules/providers/hooks/useProviderLatency";
 import { useProviderUsageSummary } from "@/modules/providers/hooks/useProviderUsageSummary";
 import { normalizeUsageSourceId, type KeyStatBucket } from "@/modules/providers/provider-usage";
-import {
-  maskApiKey,
-  readBool,
-  readString,
-  type AmpMappingEntry,
-} from "@/modules/providers/providers-helpers";
+import { maskApiKey } from "@/modules/providers/providers-helpers";
 import { summarizeProviderAccess } from "@/modules/providers/provider-access";
 
 export function ProvidersPage() {
@@ -45,17 +35,12 @@ export function ProvidersPage() {
   const navigate = useNavigate();
   const { getEntry: getLatencyEntry, checkLatency } = useProviderLatency();
 
-  const [tab, setTab] = useState<
-    "gemini" | "claude" | "codex" | "opencode-go" | "vertex" | "bedrock" | "openai" | "ampcode"
-  >("gemini");
+  const [tab, setTab] = useState<"gemini" | "claude" | "codex" | "openai">("gemini");
   const [loading, setLoading] = useState(true);
 
   const [geminiKeys, setGeminiKeys] = useState<ProviderSimpleConfig[]>([]);
   const [claudeKeys, setClaudeKeys] = useState<ProviderSimpleConfig[]>([]);
   const [codexKeys, setCodexKeys] = useState<ProviderSimpleConfig[]>([]);
-  const [openCodeGoKeys, setOpenCodeGoKeys] = useState<ProviderSimpleConfig[]>([]);
-  const [vertexKeys, setVertexKeys] = useState<ProviderSimpleConfig[]>([]);
-  const [bedrockKeys, setBedrockKeys] = useState<BedrockProviderConfig[]>([]);
   const [openaiProviders, setOpenaiProviders] = useState<OpenAIProvider[]>([]);
   const [apiKeyEntries, setApiKeyEntries] = useState<ApiKeyEntry[]>([]);
   const [channelGroups, setChannelGroups] = useState<ChannelGroupItem[]>([]);
@@ -63,17 +48,12 @@ export function ProvidersPage() {
 
   const [usageStatsBySource, setUsageStatsBySource] = useState<Record<string, KeyStatBucket>>({});
 
-  const [ampcode, setAmpcode] = useState<Record<string, unknown> | null>(null);
-  const [ampUpstreamUrl, setAmpUpstreamUrl] = useState("");
-  const [ampUpstreamApiKey, setAmpUpstreamApiKey] = useState("");
-  const [ampForceMappings, setAmpForceMappings] = useState(false);
-  const [ampMappings, setAmpMappings] = useState<AmpMappingEntry[]>([]);
 
   const [confirm, setConfirm] = useState<
     | null
     | {
         type: "deleteKey";
-        keyType: "gemini" | "claude" | "codex" | "opencode-go" | "vertex" | "bedrock";
+        keyType: "gemini" | "claude" | "codex";
         index: number;
       }
     | { type: "deleteOpenAI"; index: number }
@@ -94,47 +74,9 @@ export function ProvidersPage() {
           case "codex":
             setCodexKeys(await providersApi.getCodexConfigs());
             break;
-          case "opencode-go":
-            setOpenCodeGoKeys(await providersApi.getOpenCodeGoConfigs());
-            break;
-          case "vertex":
-            setVertexKeys(await providersApi.getVertexConfigs());
-            break;
-          case "bedrock":
-            setBedrockKeys(await providersApi.getBedrockConfigs());
-            break;
           case "openai":
             setOpenaiProviders(await providersApi.getOpenAIProviders());
             break;
-          case "ampcode": {
-            const [amp, ampMap] = await Promise.all([
-              ampcodeApi.getAmpcode(),
-              ampcodeApi.getModelMappings(),
-            ]);
-            const ampObj =
-              amp && typeof amp === "object" && !Array.isArray(amp)
-                ? (amp as Record<string, unknown>)
-                : {};
-            setAmpcode(ampObj);
-            setAmpUpstreamUrl(readString(ampObj, "upstreamUrl", "upstream-url"));
-            setAmpForceMappings(readBool(ampObj, "forceModelMappings", "force-model-mappings"));
-
-            const mappings = Array.isArray(ampMap) ? ampMap : [];
-            const entries: AmpMappingEntry[] = mappings
-              .map((item, idx) => {
-                if (!item || typeof item !== "object") return null;
-                const record = item as Record<string, unknown>;
-                const from = String(record.from ?? "").trim();
-                const to = String(record.to ?? "").trim();
-                if (!from || !to) return null;
-                return { id: `map-${idx}-${from}`, from, to };
-              })
-              .filter(Boolean) as AmpMappingEntry[];
-            setAmpMappings(
-              entries.length ? entries : [{ id: `map-${Date.now()}`, from: "", to: "" }],
-            );
-            break;
-          }
         }
       } catch (err: unknown) {
         notify({
@@ -257,15 +199,9 @@ export function ProvidersPage() {
     geminiKeys,
     claudeKeys,
     codexKeys,
-    openCodeGoKeys,
-    vertexKeys,
-    bedrockKeys,
     setGeminiKeys,
     setClaudeKeys,
     setCodexKeys,
-    setOpenCodeGoKeys,
-    setVertexKeys,
-    setBedrockKeys,
     refreshAll,
     startRefreshTransition: startTransition,
     afterClose: handleKeyEditorRouteClose,
@@ -313,10 +249,7 @@ export function ProvidersPage() {
       if (
         provider === "gemini" ||
         provider === "claude" ||
-        provider === "codex" ||
-        provider === "opencode-go" ||
-        provider === "vertex" ||
-        provider === "bedrock"
+        provider === "codex"
       ) {
         setTab(provider);
         await refreshTab(provider);
@@ -345,52 +278,8 @@ export function ProvidersPage() {
         return;
       }
 
-      if (provider === "ampcode") {
-        setTab("ampcode");
-        await refreshTab("ampcode");
-      }
     })();
   }, [loading, location.pathname, openKeyEditor, openOpenAIEditor, refreshTab]);
-
-  const saveAmpcode = useCallback(async () => {
-    try {
-      const upstreamUrl = ampUpstreamUrl.trim();
-      if (upstreamUrl) {
-        await ampcodeApi.updateUpstreamUrl(upstreamUrl);
-      } else {
-        await ampcodeApi.clearUpstreamUrl();
-      }
-
-      const upstreamKey = ampUpstreamApiKey.trim();
-      if (upstreamKey) {
-        await ampcodeApi.updateUpstreamApiKey(upstreamKey);
-      }
-
-      await ampcodeApi.updateForceModelMappings(ampForceMappings);
-
-      const mappings = ampMappings
-        .map((m) => ({ from: m.from.trim(), to: m.to.trim() }))
-        .filter((m) => m.from && m.to);
-      await ampcodeApi.patchModelMappings(mappings);
-
-      notify({ type: "success", message: t("providers.ampcode_saved") });
-      startTransition(() => void refreshAll());
-      setAmpUpstreamApiKey("");
-    } catch (err: unknown) {
-      notify({
-        type: "error",
-        message: err instanceof Error ? err.message : t("providers.save_failed"),
-      });
-    }
-  }, [
-    ampForceMappings,
-    ampMappings,
-    ampUpstreamApiKey,
-    ampUpstreamUrl,
-    notify,
-    refreshAll,
-    startTransition,
-  ]);
 
   const copyText = useCallback(
     async (value: string) => {
@@ -448,27 +337,10 @@ export function ProvidersPage() {
             <img src={iconCodex} alt="" className="hidden size-4 dark:block" />
             Codex
           </TabsTrigger>
-          <TabsTrigger value="opencode-go">
-            <img src={iconOpenCodeLight} alt="" className="size-4 dark:hidden" />
-            <img src={iconOpenCodeDark} alt="" className="hidden size-4 dark:block" />
-            OpenCode Go
-          </TabsTrigger>
-          <TabsTrigger value="vertex">
-            <img src={iconVertex} alt="" className="size-4" />
-            Vertex
-          </TabsTrigger>
-          <TabsTrigger value="bedrock">
-            <Cloud size={16} />
-            Bedrock
-          </TabsTrigger>
           <TabsTrigger value="openai">
             <img src={iconOpenai} alt="" className="size-4 dark:hidden" />
             <img src={iconOpenai} alt="" className="hidden size-4 dark:block" />
             {t("providers.openai_compatible")}
-          </TabsTrigger>
-          <TabsTrigger value="ampcode">
-            <img src={iconAmp} alt="" className="size-4" />
-            Ampcode
           </TabsTrigger>
         </TabsList>
 
@@ -526,62 +398,6 @@ export function ProvidersPage() {
           />
         </TabsContent>
 
-        <TabsContent value="opencode-go" className="mt-6">
-          <ProviderKeyListCard
-            icon={FileKey}
-            iconSrc={iconOpenCodeLight}
-            iconDarkSrc={iconOpenCodeDark}
-            title={t("providers.opencode_go_keys")}
-            description={t("providers.opencode_go_desc")}
-            items={openCodeGoKeys}
-            onAdd={() => openKeyEditor("opencode-go", null)}
-            onEdit={(idx) => openKeyEditor("opencode-go", idx)}
-            onDelete={(idx) =>
-              setConfirm({ type: "deleteKey", keyType: "opencode-go", index: idx })
-            }
-            onToggleEnabled={(idx, enabled) => void toggleKeyEnabled("opencode-go", idx, enabled)}
-            getStats={getSimpleStats}
-            getStatusBar={getSimpleStatusBar}
-            getAccessSummary={getProviderAccessSummary}
-            showBaseUrl={false}
-          />
-        </TabsContent>
-
-        <TabsContent value="vertex" className="mt-6">
-          <ProviderKeyListCard
-            icon={Database}
-            title={t("providers.vertex_keys")}
-            description={t("providers.vertex_desc")}
-            items={vertexKeys}
-            onAdd={() => openKeyEditor("vertex", null)}
-            onEdit={(idx) => openKeyEditor("vertex", idx)}
-            onDelete={(idx) => setConfirm({ type: "deleteKey", keyType: "vertex", index: idx })}
-            getStats={getSimpleStats}
-            getStatusBar={getSimpleStatusBar}
-            getAccessSummary={getProviderAccessSummary}
-            getLatencyEntry={getLatencyEntry}
-            checkLatency={checkLatency}
-          />
-        </TabsContent>
-
-        <TabsContent value="bedrock" className="mt-6">
-          <ProviderKeyListCard
-            icon={Cloud}
-            title={t("providers.bedrock_keys")}
-            description={t("providers.bedrock_desc")}
-            items={bedrockKeys}
-            onAdd={() => openKeyEditor("bedrock", null)}
-            onEdit={(idx) => openKeyEditor("bedrock", idx)}
-            onDelete={(idx) => setConfirm({ type: "deleteKey", keyType: "bedrock", index: idx })}
-            onToggleEnabled={(idx, enabled) => void toggleKeyEnabled("bedrock", idx, enabled)}
-            getStats={getSimpleStats}
-            getStatusBar={getSimpleStatusBar}
-            getAccessSummary={getProviderAccessSummary}
-            getLatencyEntry={getLatencyEntry}
-            checkLatency={checkLatency}
-          />
-        </TabsContent>
-
         <TabsContent value="openai" className="mt-6">
           <OpenAIProvidersTab
             providers={openaiProviders}
@@ -594,22 +410,6 @@ export function ProvidersPage() {
           />
         </TabsContent>
 
-        <TabsContent value="ampcode" className="mt-6">
-          <AmpcodePanel
-            loading={loading}
-            isPending={isPending}
-            saveAmpcode={saveAmpcode}
-            ampcode={ampcode}
-            ampMappings={ampMappings}
-            ampUpstreamUrl={ampUpstreamUrl}
-            setAmpUpstreamUrl={setAmpUpstreamUrl}
-            ampUpstreamApiKey={ampUpstreamApiKey}
-            setAmpUpstreamApiKey={setAmpUpstreamApiKey}
-            ampForceMappings={ampForceMappings}
-            setAmpForceMappings={setAmpForceMappings}
-            setAmpMappings={setAmpMappings}
-          />
-        </TabsContent>
       </Tabs>
 
       <ProviderKeyModal

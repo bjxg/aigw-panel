@@ -1,8 +1,6 @@
 import { modelsApi, providersApi } from "@/lib/http/apis";
 import type { OpenAIProvider, ProviderModel, ProviderSimpleConfig } from "@/lib/http/types";
 
-const normalizeProviderKey = (value: string): string => value.trim().toLowerCase();
-
 const matchesModelPattern = (modelId: string, pattern: string): boolean => {
   const rawModel = String(modelId ?? "").trim();
   const rawPattern = String(pattern ?? "").trim();
@@ -62,8 +60,6 @@ const PROVIDER_CHANNELS = [
   { key: "gemini", load: providersApi.getGeminiKeys },
   { key: "claude", load: providersApi.getClaudeConfigs },
   { key: "codex", load: providersApi.getCodexConfigs },
-  { key: "opencode-go", load: providersApi.getOpenCodeGoConfigs },
-  { key: "vertex", load: providersApi.getVertexConfigs },
 ] as const;
 
 const emptyAvailability = (): ConfiguredModelAvailability => ({

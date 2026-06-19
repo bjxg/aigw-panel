@@ -34,7 +34,6 @@ import iconKimiDark from "@/assets/icons/kimi-dark.svg";
 import iconCodex from "@/assets/icons/codex.svg";
 import iconGlm from "@/assets/icons/glm.svg";
 import iconKiro from "@/assets/icons/kiro.svg";
-import iconVertex from "@/assets/icons/vertex.svg";
 import iconIflow from "@/assets/icons/iflow.svg";
 import iconMimo from "@/assets/icons/mimo.svg";
 
@@ -177,7 +176,6 @@ const VENDOR_ICONS: Record<string, { light: string; dark: string }> = {
   codex: { light: iconCodex, dark: iconCodex },
   glm: { light: iconGlm, dark: iconGlm },
   kiro: { light: iconKiro, dark: iconKiro },
-  vertex: { light: iconVertex, dark: iconVertex },
   iflow: { light: iconIflow, dark: iconIflow },
   mimo: { light: iconMimo, dark: iconMimo },
 };
