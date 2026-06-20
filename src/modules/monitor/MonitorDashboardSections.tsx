@@ -294,9 +294,9 @@ export function MonitorDistributionSections({
                 notMerge
               />
               <div className="flex h-auto flex-col justify-start gap-2 overflow-y-auto pr-2 md:max-h-[22rem]">
-                {apikeyDistributionLegend.map((item) => (
+                {apikeyDistributionLegend.map((item, index) => (
                   <button
-                    key={item.name}
+                    key={`${item.name}__${index}`}
                     type="button"
                     aria-pressed={item.enabled}
                     onClick={() => toggleApikeyDistributionLegend(item.name)}
