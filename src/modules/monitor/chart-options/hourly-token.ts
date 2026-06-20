@@ -1,5 +1,5 @@
 import { formatNumber } from "@/modules/monitor/monitor-utils";
-import type { HourlySeries } from "@/modules/monitor/chart-options/types";
+import type { HourlySeries, HourlyStackPoint } from "@/modules/monitor/chart-options/types";
 
 export const createHourlyTokenOption = (input: {
   hourlySeries: HourlySeries;
@@ -11,7 +11,18 @@ export const createHourlyTokenOption = (input: {
   isDark: boolean;
   compact?: boolean;
 }): Record<string, unknown> => {
-  const points = input.hourlySeries.tokenPoints.slice(-input.tokenHourWindow);
+  // See hourly-model.ts: pad sparse buckets so the 6/12/24 tabs always
+  // show a different number of columns.
+  const tail = input.hourlySeries.tokenPoints.slice(-input.tokenHourWindow);
+  const points: HourlyStackPoint[] = tail.length >= input.tokenHourWindow
+    ? tail
+    : [
+        ...Array.from({ length: input.tokenHourWindow - tail.length }, () => ({
+          label: "",
+          stacks: input.hourlySeries.tokenKeys.map((key) => ({ key, value: 0 })),
+        })),
+        ...tail,
+      ];
   const x = points.map((point) => point.label);
   const barMaxWidth = input.tokenHourWindow <= 6 ? 44 : input.tokenHourWindow <= 12 ? 32 : 24;
 

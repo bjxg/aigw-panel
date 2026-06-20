@@ -7,6 +7,7 @@ import { CHART_COLOR_CLASSES, HOURLY_MODEL_COLORS } from "@/modules/monitor/moni
 import {
   formatCompact,
   formatMonthDay,
+  parseHourBucketLabel,
 } from "@/modules/monitor/monitor-format";
 import {
   createDailyTrendOption,
@@ -102,7 +103,15 @@ export function MonitorPage() {
     setIsRefreshing(true);
     setError(null);
     try {
-      const chartResp = await usageApi.getChartData(timeRange, apiFilter || undefined);
+      // Always request an hourly window at least as wide as the largest
+      // "最近 N 小时" tab the user can pick, so that switching tabs between 6 /
+      // 12 / 24 reflects different bucket counts in the chart.
+      const hourWindow = Math.max(modelHourWindow, tokenHourWindow, 24);
+      const chartResp = await usageApi.getChartData(
+        timeRange,
+        apiFilter || undefined,
+        { hourWindow },
+      );
       if (requestIdRef.current !== currentRequestId) return;
       setChartData(chartResp);
     } catch (requestError) {
@@ -115,7 +124,7 @@ export function MonitorPage() {
         setIsRefreshing(false);
       }
     }
-  }, [t, timeRange, apiFilter]);
+  }, [t, timeRange, apiFilter, modelHourWindow, tokenHourWindow]);
 
   const metrics = useMemo(() => {
     let requests = 0;
@@ -273,8 +282,8 @@ export function MonitorPage() {
     const modelPoints = (chartData?.hourly_models || [])
       .reduce(
         (acc, pt) => {
-          const [, timePart] = pt.hour.split(" "); // "2023-10-10 15:00"
-          const label = timePart || pt.hour;
+          // "2023-10-10 15:00" (SQLite) or "2023-10-10T15:00:00+08:00" (PostgreSQL)
+          const label = parseHourBucketLabel(pt.hour);
 
           let bucket = acc.find((x) => x.label === label);
           if (!bucket) {
@@ -302,8 +311,7 @@ export function MonitorPage() {
       });
 
     const tokenPoints = (chartData?.hourly_tokens || []).map((pt) => {
-      const [, timePart] = pt.hour.split(" ");
-      const label = timePart || pt.hour;
+      const label = parseHourBucketLabel(pt.hour);
       return {
         label,
         stacks: [

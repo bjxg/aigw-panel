@@ -1,6 +1,6 @@
 import { formatNumber } from "@/modules/monitor/monitor-utils";
 import { HOURLY_MODEL_COLORS } from "@/modules/monitor/monitor-constants";
-import type { HourlySeries } from "@/modules/monitor/chart-options/types";
+import type { HourlySeries, HourlyStackPoint } from "@/modules/monitor/chart-options/types";
 
 export const createHourlyModelOption = (input: {
   hourlySeries: HourlySeries;
@@ -12,7 +12,21 @@ export const createHourlyModelOption = (input: {
   isDark: boolean;
   compact?: boolean;
 }): Record<string, unknown> => {
-  const points = input.hourlySeries.modelPoints.slice(-input.modelHourWindow);
+  // Take the last N model points and pad with empty buckets so the chart
+  // always shows exactly `modelHourWindow` columns. Without padding, a
+  // sparse time range (e.g. only 3 of the last 24 hours have any traffic)
+  // makes 6/12/24 tabs look identical because slice(-N) returns the same
+  // 3-element array in all three cases.
+  const tail = input.hourlySeries.modelPoints.slice(-input.modelHourWindow);
+  const points: HourlyStackPoint[] = tail.length >= input.modelHourWindow
+    ? tail
+    : [
+        ...Array.from({ length: input.modelHourWindow - tail.length }, () => ({
+          label: "",
+          stacks: input.hourlySeries.modelKeys.map((key) => ({ key, value: 0 })),
+        })),
+        ...tail,
+      ];
   const x = points.map((point) => point.label);
   const barMaxWidth = input.modelHourWindow <= 6 ? 44 : input.modelHourWindow <= 12 ? 32 : 24;
 

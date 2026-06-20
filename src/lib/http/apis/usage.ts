@@ -68,10 +68,16 @@ export const usageApi = {
   async getChartData(
     days = 7,
     apiKeyID = 0,
-    options?: { signal?: AbortSignal },
+    options?: { signal?: AbortSignal; hourWindow?: number },
   ): Promise<ChartDataResponse> {
     const qs = new URLSearchParams({ days: String(days) });
     if (apiKeyID > 0) qs.set("api_key_id", String(apiKeyID));
+    // When the dashboard hour-window tabs (最近 6/12/24 小时) are in play, ask
+    // the server to return an hourly window of that exact size so the chart
+    // actually shows a different number of columns when switching tabs.
+    if (options?.hourWindow && options.hourWindow > 0) {
+      qs.set("hours", String(options.hourWindow));
+    }
     const resp = await apiClient.get<ChartDataResponse>(`/usage/chart-data?${qs.toString()}`, {
       signal: options?.signal,
     });
