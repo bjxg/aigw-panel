@@ -6,7 +6,10 @@ import { useTheme } from "@/modules/ui/ThemeProvider";
 import { CHART_COLOR_CLASSES, HOURLY_MODEL_COLORS } from "@/modules/monitor/monitor-constants";
 import {
   formatCompact,
+  formatHourLabel,
   formatMonthDay,
+  formatMonthDayHourLabel,
+  parseHourBucketDate,
   parseHourBucketLabel,
 } from "@/modules/monitor/monitor-format";
 import {
@@ -279,24 +282,102 @@ export function MonitorPage() {
   const hourlySeries = useMemo(() => {
     const modelKeys = [...topModelKeys, HOURLY_MODEL_OTHER_KEY];
 
-    const modelPoints = (chartData?.hourly_models || [])
-      .reduce(
-        (acc, pt) => {
-          // "2023-10-10 15:00" (SQLite) or "2023-10-10T15:00:00+08:00" (PostgreSQL)
-          const label = parseHourBucketLabel(pt.hour);
+    // ---- 1. Build a Map<hourKey, ...> from the backend, where hourKey is
+    //         the UTC timestamp of the truncated hour (so different
+    //         representations of the same hour all collide on one bucket).
+    type ModelBucket = { label: string; stacksMap: Map<string, number> };
+    type TokenBucket = {
+      input: number;
+      output: number;
+      reasoning: number;
+      cached: number;
+      total: number;
+    };
+    const modelBucketsByHour = new Map<number, ModelBucket>();
+    const tokenBucketsByHour = new Map<number, TokenBucket>();
 
-          let bucket = acc.find((x) => x.label === label);
-          if (!bucket) {
-            bucket = { label, stacksMap: new Map<string, number>() };
-            acc.push(bucket);
-          }
-          const current = bucket.stacksMap.get(pt.model) || 0;
-          bucket.stacksMap.set(pt.model, current + pt.requests);
-          return acc;
-        },
-        [] as { label: string; stacksMap: Map<string, number> }[],
-      )
-      .map((bucket) => {
+    const hourKey = (date: Date) => {
+      // Truncate to local-time hour, then take the wall-clock UTC ms of
+      // that instant. This makes the map key stable across formatting.
+      const truncated = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        date.getHours(),
+        0,
+        0,
+        0,
+      );
+      return truncated.getTime();
+    };
+
+    for (const pt of chartData?.hourly_models || []) {
+      const date = parseHourBucketDate(pt.hour);
+      if (!date) continue;
+      const key = hourKey(date);
+      let bucket = modelBucketsByHour.get(key);
+      if (!bucket) {
+        bucket = { label: formatHourLabel(date), stacksMap: new Map<string, number>() };
+        modelBucketsByHour.set(key, bucket);
+      }
+      const current = bucket.stacksMap.get(pt.model) || 0;
+      bucket.stacksMap.set(pt.model, current + pt.requests);
+    }
+
+    for (const pt of chartData?.hourly_tokens || []) {
+      const date = parseHourBucketDate(pt.hour);
+      if (!date) continue;
+      const key = hourKey(date);
+      const existing = tokenBucketsByHour.get(key);
+      tokenBucketsByHour.set(key, {
+        input: (existing?.input ?? 0) + pt.input_tokens,
+        output: (existing?.output ?? 0) + pt.output_tokens,
+        reasoning: (existing?.reasoning ?? 0) + pt.reasoning_tokens,
+        cached: (existing?.cached ?? 0) + pt.cached_tokens,
+        total: (existing?.total ?? 0) + pt.total_tokens,
+      });
+    }
+
+    // ---- 2. Decide how many hours to render. Use the largest tab window
+    //         the user could pick, so 6/12/24 always have data to slice from.
+    const windowHours = Math.max(modelHourWindow, tokenHourWindow, 24);
+
+    // ---- 3. Anchor the window to "now" (truncated to the current hour),
+    //         NOT to the latest data hour, so the x axis always represents
+    //         the actual last N hours up to the present moment. A request
+    //         made at 09:13 should see the right-most column labelled 09:00,
+    //         not 19:00 of the previous day just because the system has
+    //         been idle since then.
+    const HOUR_MS = 60 * 60 * 1000;
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+    const anchorMs = now.getTime();
+    const hours: { ms: number; date: Date }[] = [];
+    for (let i = windowHours - 1; i >= 0; i -= 1) {
+      const ms = anchorMs - i * HOUR_MS;
+      hours.push({ ms, date: new Date(ms) });
+    }
+
+    // Use month-day prefix whenever the window spans more than one day, so
+    // e.g. 23:00 → 02:00 doesn't visually overlap on the x axis.
+    const spanDays = (() => {
+      if (hours.length === 0) return 0;
+      const first = new Date(hours[0].ms);
+      const last = new Date(hours[hours.length - 1].ms);
+      const same =
+        first.getFullYear() === last.getFullYear() &&
+        first.getMonth() === last.getMonth() &&
+        first.getDate() === last.getDate();
+      return same ? 1 : 2;
+    })();
+    const labelFor = (date: Date) =>
+      spanDays > 1 ? formatMonthDayHourLabel(date) : formatHourLabel(date);
+
+    // ---- 4. Materialize the chart buckets in chronological order.
+    const modelPoints = hours.map(({ ms, date }) => {
+      const bucket = modelBucketsByHour.get(ms);
+      if (bucket) {
+        bucket.label = labelFor(date);
         const stacks = modelKeys.map((key) => {
           if (key === HOURLY_MODEL_OTHER_KEY) {
             let sum = 0;
@@ -308,18 +389,38 @@ export function MonitorPage() {
           return { key, value: bucket.stacksMap.get(key) || 0 };
         });
         return { label: bucket.label, stacks };
-      });
-
-    const tokenPoints = (chartData?.hourly_tokens || []).map((pt) => {
-      const label = parseHourBucketLabel(pt.hour);
+      }
       return {
-        label,
+        label: labelFor(date),
+        stacks: modelKeys.map((key) => ({ key, value: 0 })),
+      };
+    });
+
+    const tokenKeys = [
+      HOURLY_TOKEN_KEYS.input,
+      HOURLY_TOKEN_KEYS.output,
+      HOURLY_TOKEN_KEYS.reasoning,
+      HOURLY_TOKEN_KEYS.cached,
+      HOURLY_TOKEN_KEYS.total,
+    ];
+    const tokenPoints = hours.map(({ ms, date }) => {
+      const bucket = tokenBucketsByHour.get(ms);
+      const zero = {
+        input: 0,
+        output: 0,
+        reasoning: 0,
+        cached: 0,
+        total: 0,
+      };
+      const t = bucket ?? zero;
+      return {
+        label: labelFor(date),
         stacks: [
-          { key: HOURLY_TOKEN_KEYS.input, value: pt.input_tokens },
-          { key: HOURLY_TOKEN_KEYS.output, value: pt.output_tokens },
-          { key: HOURLY_TOKEN_KEYS.reasoning, value: pt.reasoning_tokens },
-          { key: HOURLY_TOKEN_KEYS.cached, value: pt.cached_tokens },
-          { key: HOURLY_TOKEN_KEYS.total, value: pt.total_tokens },
+          { key: HOURLY_TOKEN_KEYS.input, value: t.input },
+          { key: HOURLY_TOKEN_KEYS.output, value: t.output },
+          { key: HOURLY_TOKEN_KEYS.reasoning, value: t.reasoning },
+          { key: HOURLY_TOKEN_KEYS.cached, value: t.cached },
+          { key: HOURLY_TOKEN_KEYS.total, value: t.total },
         ],
       };
     });
@@ -327,16 +428,10 @@ export function MonitorPage() {
     return {
       modelKeys,
       modelPoints,
-      tokenKeys: [
-        HOURLY_TOKEN_KEYS.input,
-        HOURLY_TOKEN_KEYS.output,
-        HOURLY_TOKEN_KEYS.reasoning,
-        HOURLY_TOKEN_KEYS.cached,
-        HOURLY_TOKEN_KEYS.total,
-      ],
+      tokenKeys,
       tokenPoints,
     };
-  }, [chartData, topModelKeys]);
+  }, [chartData, topModelKeys, modelHourWindow, tokenHourWindow]);
 
   const hourlyModelPalette = useMemo(() => {
     const palette = [
