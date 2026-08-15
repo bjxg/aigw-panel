@@ -92,7 +92,13 @@ export function ProvidersPage() {
 
   const loadUsage = useCallback(async () => {
     try {
-      const usage = await usageApi.getEntityStats(30, 0).catch(() => null);
+      let usage = await usageApi.getEntityStats(30, 0).catch(() => null);
+      // 低流量部署下 30 天窗口可能没有任何请求，导致所有渠道统计恒为 0/0 且完全相同；
+      // 此时回退查询近一年的数据，让历史用量得以展示。
+      const hasRecentData = (usage?.source ?? []).some((pt) => (pt.requests ?? 0) > 0);
+      if (!hasRecentData) {
+        usage = (await usageApi.getEntityStats(365, 0).catch(() => null)) ?? usage;
+      }
       if (usage?.source) {
         const stats: Record<string, KeyStatBucket> = {};
         usage.source.forEach((pt) => {
