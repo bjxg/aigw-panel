@@ -25,6 +25,12 @@ import {
 } from "@/modules/monitor/MonitorDashboardSections";
 import { useMonitorDashboardState } from "@/modules/monitor/hooks/useMonitorDashboardState";
 import { MonitorToolbarSection } from "@/modules/monitor/MonitorToolbarSection";
+import {
+  presetDays,
+  rangeAnchorEndLocal,
+  resolveRangeQuery,
+  yesterdayYMD,
+} from "@/lib/date-range";
 import { useTranslation } from "react-i18next";
 
 const DAILY_LEGEND_KEYS = {
@@ -111,7 +117,7 @@ export function MonitorPage() {
       // 12 / 24 reflects different bucket counts in the chart.
       const hourWindow = Math.max(modelHourWindow, tokenHourWindow, 24);
       const chartResp = await usageApi.getChartData(
-        timeRange,
+        resolveRangeQuery(timeRange),
         apiFilter || undefined,
         { hourWindow },
       );
@@ -179,6 +185,18 @@ export function MonitorPage() {
 
   const hasData = metrics.totalRequests > 0;
   const isLoading = isRefreshing || isPending;
+
+  // Human-readable label of the current time selection, used in chart
+  // descriptions (e.g. "最近 7 天" or "2026-08-01 ~ 2026-08-07").
+  const rangeLabel = useMemo(() => {
+    if (timeRange.kind === "custom") {
+      return `${timeRange.start} ~ ${timeRange.end}`;
+    }
+    if (timeRange.preset === "yesterday") {
+      return yesterdayYMD();
+    }
+    return t("monitor.last_n_days", { n: presetDays(timeRange.preset) ?? 1 });
+  }, [timeRange, t]);
 
   // Fetch API key options for the filter dropdown
   useEffect(() => {
@@ -347,11 +365,12 @@ export function MonitorPage() {
     //         the actual last N hours up to the present moment. A request
     //         made at 09:13 should see the right-most column labelled 09:00,
     //         not 19:00 of the previous day just because the system has
-    //         been idle since then.
+    //         been idle since then. For explicit date ranges (昨天/自定义),
+    //         anchor to the end of the selected range instead.
     const HOUR_MS = 60 * 60 * 1000;
-    const now = new Date();
-    now.setMinutes(0, 0, 0);
-    const anchorMs = now.getTime();
+    const anchor = rangeAnchorEndLocal(timeRange) ?? new Date();
+    anchor.setMinutes(0, 0, 0);
+    const anchorMs = anchor.getTime();
     const hours: { ms: number; date: Date }[] = [];
     for (let i = windowHours - 1; i >= 0; i -= 1) {
       const ms = anchorMs - i * HOUR_MS;
@@ -431,7 +450,7 @@ export function MonitorPage() {
       tokenKeys,
       tokenPoints,
     };
-  }, [chartData, topModelKeys, modelHourWindow, tokenHourWindow]);
+  }, [chartData, topModelKeys, modelHourWindow, tokenHourWindow, timeRange]);
 
   const hourlyModelPalette = useMemo(() => {
     const palette = [
@@ -737,7 +756,7 @@ export function MonitorPage() {
         <>
           <MonitorDistributionSections
             t={t}
-            timeRange={timeRange}
+            rangeLabel={rangeLabel}
             modelMetric={modelMetric}
             setModelMetric={setModelMetric}
             modelDistributionOption={modelDistributionOption}

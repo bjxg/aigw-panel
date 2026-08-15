@@ -14,19 +14,16 @@ import { AnimatedNumber } from "@/modules/ui/AnimatedNumber";
 import { Button } from "@/modules/ui/Button";
 import { Card } from "@/modules/ui/Card";
 import { EmptyState } from "@/modules/ui/EmptyState";
-import { Tabs, TabsList, TabsTrigger } from "@/modules/ui/Tabs";
+import { DateRangeTabs } from "@/modules/ui/DateRangeTabs";
 import { useToast } from "@/modules/ui/ToastProvider";
 import { EChart } from "@/modules/ui/charts/EChart";
 import { ChartLegend } from "@/modules/ui/charts/ChartLegend";
 import { useInterval } from "@/hooks/useInterval";
-
-type DashboardRange = 1 | 7 | 30;
-
-const RANGE_KEYS: Record<DashboardRange, string> = {
-  1: "dashboard.today",
-  7: "dashboard.last_7_days",
-  30: "dashboard.last_30_days",
-};
+import {
+  presetDays,
+  resolveRangeQuery,
+  type RangeSelection,
+} from "@/lib/date-range";
 
 const formatNumber = (n: number) =>
   n >= 1_000_000
@@ -361,19 +358,19 @@ export function DashboardPage() {
   const { notify } = useToast();
   const { stats, connected } = useSystemStats(5);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [range, setRange] = useState<DashboardRange>(7);
+  const [range, setRange] = useState<RangeSelection>({ kind: "preset", preset: "7d" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [throughputLegend, setThroughputLegend] = useState({ rpm: true, tpm: true });
 
   const refresh = useCallback(
-    async (days: DashboardRange, silent = false) => {
+    async (selection: RangeSelection, silent = false) => {
       if (!silent) {
         setLoading(true);
       }
       setError(null);
       try {
-        const data = await usageApi.getDashboardSummary(days);
+        const data = await usageApi.getDashboardSummary(resolveRangeQuery(selection));
         setSummary(data);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : t("dashboard.load_failed");
@@ -443,18 +440,12 @@ export function DashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Tabs
-            value={String(range)}
-            onValueChange={(next) => setRange(Number(next) as DashboardRange)}
-          >
-            <TabsList>
-              {([1, 7, 30] as DashboardRange[]).map((val) => (
-                <TabsTrigger key={val} value={String(val)}>
-                  {t(RANGE_KEYS[val])}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          <DateRangeTabs
+            value={range}
+            onChange={setRange}
+            presets={["today", "yesterday", "7d", "30d"]}
+            ariaLabel={t("dashboard.time_range")}
+          />
           <Button
             variant="secondary"
             size="sm"
@@ -486,9 +477,15 @@ export function DashboardPage() {
           title={t("dashboard.total_requests")}
           value={<AnimatedNumber value={kpi?.total_requests ?? 0} format={formatNumber} />}
           hint={
-            range === 1
+            range.kind === "preset" && range.preset === "today"
               ? t("dashboard.total_hint_today")
-              : t("dashboard.total_hint_days", { count: range })
+              : range.kind === "preset" && range.preset === "yesterday"
+                ? t("dashboard.total_hint_yesterday")
+                : range.kind === "custom"
+                  ? t("dashboard.total_hint_range", { start: range.start, end: range.end })
+                  : t("dashboard.total_hint_days", {
+                      count: range.kind === "preset" ? (presetDays(range.preset) ?? 7) : 7,
+                    })
           }
           icon={Activity}
           option={totalRequestOption}

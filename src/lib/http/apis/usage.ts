@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/http/client";
 import type { UsageData, ChartDataResponse, EntityStatsResponse } from "@/lib/http/types";
+import type { RangeQuery } from "@/lib/date-range";
 
 export interface UsageExportPayload {
   version?: number;
@@ -66,11 +67,19 @@ export const usageApi = {
   },
 
   async getChartData(
-    days = 7,
+    range: number | RangeQuery = 7,
     apiKeyID = 0,
     options?: { signal?: AbortSignal; hourWindow?: number },
   ): Promise<ChartDataResponse> {
-    const qs = new URLSearchParams({ days: String(days) });
+    const qs = new URLSearchParams();
+    if (typeof range === "number") {
+      qs.set("days", String(range));
+    } else if (range.start && range.end) {
+      qs.set("start", range.start);
+      qs.set("end", range.end);
+    } else {
+      qs.set("days", String(range.days ?? 7));
+    }
     if (apiKeyID > 0) qs.set("api_key_id", String(apiKeyID));
     // When the dashboard hour-window tabs (最近 6/12/24 小时) are in play, ask
     // the server to return an hourly window of that exact size so the chart
@@ -104,6 +113,8 @@ export const usageApi = {
     page?: number;
     size?: number;
     days?: number;
+    start?: string;
+    end?: string;
     api_key_id?: number;
     model?: string;
     channel?: string;
@@ -113,7 +124,12 @@ export const usageApi = {
     const qs = new URLSearchParams();
     if (params.page) qs.set("page", String(params.page));
     if (params.size) qs.set("size", String(params.size));
-    if (params.days) qs.set("days", String(params.days));
+    if (params.start && params.end) {
+      qs.set("start", params.start);
+      qs.set("end", params.end);
+    } else if (params.days) {
+      qs.set("days", String(params.days));
+    }
     if (params.api_key_id) qs.set("api_key_id", String(params.api_key_id));
     if (params.model) qs.set("model", params.model);
     if (params.channel) qs.set("channel", params.channel);
@@ -149,8 +165,17 @@ export const usageApi = {
     return apiClient.post<UsageImportResponse>("/usage/import", payload);
   },
 
-  getDashboardSummary(days = 7): Promise<DashboardSummary> {
-    return apiClient.get<DashboardSummary>(`/dashboard-summary?days=${days}`);
+  getDashboardSummary(range: number | RangeQuery = 7): Promise<DashboardSummary> {
+    const qs = new URLSearchParams();
+    if (typeof range === "number") {
+      qs.set("days", String(range));
+    } else if (range.start && range.end) {
+      qs.set("start", range.start);
+      qs.set("end", range.end);
+    } else {
+      qs.set("days", String(range.days ?? 7));
+    }
+    return apiClient.get<DashboardSummary>(`/dashboard-summary?${qs.toString()}`);
   },
 
   async getLogContent(id: number): Promise<LogContentResponse> {

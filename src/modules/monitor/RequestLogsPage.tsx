@@ -15,12 +15,12 @@ import {
   buildRequestLogsColumns,
   DEFAULT_REQUEST_LOG_PAGE_SIZE,
   RequestLogsPaginationBar,
-  RequestLogsTimeRangeSelector,
   toRequestLogsRow,
   SYSTEM_REQUEST_LOG_FILTER_VALUE,
   type RequestLogsRow as LogRow,
-  type TimeRange,
 } from "@/modules/monitor/requestLogsShared";
+import { DateRangeTabs } from "@/modules/ui/DateRangeTabs";
+import { resolveRangeQuery, type RangeSelection } from "@/lib/date-range";
 type StatusFilter = "" | "success" | "failed";
 const DEFAULT_LOG_STATS = { total: 0, success_rate: 0, total_tokens: 0, total_cost: 0 };
 
@@ -90,7 +90,7 @@ export function RequestLogsPage() {
   }>(DEFAULT_LOG_STATS);
 
   // Filters
-  const [timeRange, setTimeRange] = useState<TimeRange>(7);
+  const [timeRange, setTimeRange] = useState<RangeSelection>({ kind: "preset", preset: "7d" });
   const [apiQuery, setApiQuery] = useState("");
   const [modelQuery, setModelQuery] = useState("");
   const [channelQuery, setChannelQuery] = useState("");
@@ -147,7 +147,7 @@ export function RequestLogsPage() {
         const resp: UsageLogsResponse = await usageApi.getUsageLogs({
           page,
           size,
-          days: timeRange,
+          ...resolveRangeQuery(timeRange),
           api_key_id: apiKeyIdParam,
           model: modelQuery || undefined,
           channel: channelQuery || undefined,
@@ -264,7 +264,11 @@ export function RequestLogsPage() {
             {t("request_logs.heading")}
           </h2>
           <div className="flex flex-wrap items-center gap-2">
-            <RequestLogsTimeRangeSelector value={timeRange} onChange={setTimeRange} />
+            <DateRangeTabs
+              value={timeRange}
+              onChange={setTimeRange}
+              ariaLabel={t("request_logs.time_range")}
+            />
             <button
               type="button"
               onClick={() => fetchLogs(1, pageSize)}

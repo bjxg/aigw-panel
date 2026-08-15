@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import type { HourWindow, TimeRange } from "@/modules/monitor/monitor-constants";
+import type { HourWindow } from "@/modules/monitor/monitor-constants";
+import type { RangeSelection } from "@/lib/date-range";
 
 export type MonitorMetric = "requests" | "tokens";
 
@@ -24,7 +25,7 @@ export function useMonitorDashboardState() {
     return () => mq.removeEventListener("change", handleChange);
   }, []);
 
-  const [timeRange, setTimeRange] = useState<TimeRange>(7);
+  const [timeRange, setTimeRange] = useState<RangeSelection>({ kind: "preset", preset: "7d" });
   const [apiFilterInput, setApiFilterInput] = useState<number>(0);
   const [apiFilter, setApiFilter] = useState<number>(0);
   const [modelHourWindow, setModelHourWindow] = useState<HourWindow>(24);

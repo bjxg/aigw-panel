@@ -1,7 +1,7 @@
 import { ChartSpline, RefreshCw } from "lucide-react";
 import { SearchableSelect } from "@/modules/ui/SearchableSelect";
-import { TimeRangeSelector } from "@/modules/monitor/MonitorPagePieces";
-import type { TimeRange } from "@/modules/monitor/monitor-constants";
+import { DateRangeTabs } from "@/modules/ui/DateRangeTabs";
+import type { RangeSelection } from "@/lib/date-range";
 import type { APIKeyFilterItem } from "@/lib/http/apis/usage";
 
 export function MonitorToolbarSection({
@@ -17,8 +17,8 @@ export function MonitorToolbarSection({
   error,
 }: {
   t: (key: string, options?: Record<string, unknown>) => string;
-  timeRange: TimeRange;
-  setTimeRange: (value: TimeRange) => void;
+  timeRange: RangeSelection;
+  setTimeRange: (value: RangeSelection) => void;
   apiKeyOptions: APIKeyFilterItem[];
   apiFilterInput: number;
   setApiFilterInput: (value: number) => void;
@@ -46,7 +46,11 @@ export function MonitorToolbarSection({
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+          <DateRangeTabs
+            value={timeRange}
+            onChange={setTimeRange}
+            ariaLabel={t("monitor.time_range")}
+          />
           <SearchableSelect
             value={String(apiFilterInput)}
             onChange={(value) => {

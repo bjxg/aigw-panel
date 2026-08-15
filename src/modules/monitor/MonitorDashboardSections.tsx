@@ -99,7 +99,7 @@ export function MonitorKpiSection({
 
 export function MonitorDistributionSections({
   t,
-  timeRange,
+  rangeLabel,
   modelMetric,
   setModelMetric,
   modelDistributionOption,
@@ -118,7 +118,7 @@ export function MonitorDistributionSections({
   isRefreshing,
 }: {
   t: (key: string, options?: Record<string, unknown>) => string;
-  timeRange: number;
+  rangeLabel: string;
   modelMetric: "requests" | "tokens";
   setModelMetric: (value: "requests" | "tokens") => void;
   modelDistributionOption: Record<string, unknown>;
@@ -176,7 +176,7 @@ export function MonitorDistributionSections({
           <Card
             title={t("monitor.model_distribution")}
             description={t("monitor.last_days_desc", {
-              days: timeRange,
+              range: rangeLabel,
               metric: modelMetric === "requests" ? t("monitor.requests") : t("monitor.token"),
             })}
             actions={modelActions}
@@ -224,7 +224,7 @@ export function MonitorDistributionSections({
 
           <Card
             title={t("monitor.daily_usage_trend")}
-            description={t("monitor.daily_desc", { days: timeRange })}
+            description={t("monitor.daily_desc", { range: rangeLabel })}
             loading={isRefreshing}
           >
             <div className="flex h-72 min-w-0 flex-col overflow-hidden">
@@ -281,7 +281,7 @@ export function MonitorDistributionSections({
           <Card
             title={t("monitor.apikey_distribution")}
             description={t("monitor.apikey_distribution_desc", {
-              days: timeRange,
+              range: rangeLabel,
               metric: apikeyMetric === "requests" ? t("monitor.requests") : t("monitor.token"),
             })}
             actions={apikeyActions}

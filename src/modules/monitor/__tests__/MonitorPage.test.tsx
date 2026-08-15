@@ -27,7 +27,7 @@ describe("MonitorPage distribution legends", () => {
           if (key === "monitor.apikey_distribution") return "API key distribution";
           return key;
         }}
-        timeRange={7}
+        rangeLabel="Last 7 days"
         modelMetric="requests"
         setModelMetric={() => undefined}
         modelDistributionOption={{}}
