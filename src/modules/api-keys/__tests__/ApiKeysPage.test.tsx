@@ -16,16 +16,27 @@ const state = vi.hoisted(() => ({
 
 const mocks = vi.hoisted(() => ({
   apiKeyEntriesList: vi.fn(async () => state.entries),
+  apiKeyEntriesListPage: vi.fn(async () => ({
+    entries: state.entries,
+    total: state.entries.length,
+  })),
+  apiKeyEntriesCreate: vi.fn(async (entry: any) => {
+    state.entries = [...state.entries, entry];
+    return {};
+  }),
   apiKeyEntriesReplace: vi.fn(async (entries: any[]) => {
     state.entries = entries;
     return {};
   }),
-  apiKeyEntriesUpdate: vi.fn(async ({ index, value }: any) => {
-    state.entries[index] = { ...state.entries[index], ...value };
+  apiKeyEntriesUpdate: vi.fn(async ({ match, value }: any) => {
+    const idx = state.entries.findIndex((e: any) => e.key === match);
+    if (idx >= 0) {
+      state.entries[idx] = { ...state.entries[idx], ...value };
+    }
     return {};
   }),
-  apiKeyEntriesDelete: vi.fn(async ({ index }: any) => {
-    state.entries.splice(index, 1);
+  apiKeyEntriesDelete: vi.fn(async ({ key }: any) => {
+    state.entries = state.entries.filter((e: any) => e.key !== key);
     return { logs_deleted: 0 };
   }),
   apiKeysList: vi.fn(async () => [] as string[]),
@@ -70,6 +81,8 @@ vi.mock("@/lib/http/apis/api-keys", () => ({
   },
   apiKeyEntriesApi: {
     list: mocks.apiKeyEntriesList,
+    listPage: mocks.apiKeyEntriesListPage,
+    create: mocks.apiKeyEntriesCreate,
     replace: mocks.apiKeyEntriesReplace,
     update: mocks.apiKeyEntriesUpdate,
     delete: mocks.apiKeyEntriesDelete,
@@ -183,6 +196,8 @@ describe("ApiKeysPage", () => {
     state.configYaml = "";
     state.permissionProfiles = [];
     mocks.apiKeyEntriesList.mockClear();
+    mocks.apiKeyEntriesListPage.mockClear();
+    mocks.apiKeyEntriesCreate.mockClear();
     mocks.apiKeyEntriesReplace.mockClear();
     mocks.apiKeyEntriesUpdate.mockClear();
     mocks.apiKeyEntriesDelete.mockClear();
@@ -216,7 +231,7 @@ describe("ApiKeysPage", () => {
     await userEvent.click(screen.getByRole("button", { name: /^Create$/i }));
 
     await waitFor(() => {
-      expect(mocks.apiKeyEntriesReplace).toHaveBeenCalled();
+      expect(mocks.apiKeyEntriesCreate).toHaveBeenCalled();
     });
     expect(await screen.findByText("New Key")).toBeInTheDocument();
 
@@ -334,11 +349,10 @@ describe("ApiKeysPage", () => {
     await userEvent.click(screen.getByRole("button", { name: /^Create$/i }));
 
     await waitFor(() => {
-      expect(mocks.apiKeyEntriesReplace).toHaveBeenCalled();
+      expect(mocks.apiKeyEntriesCreate).toHaveBeenCalled();
     });
 
-    expect(mocks.apiKeyEntriesReplace).toHaveBeenLastCalledWith([
-      expect.objectContaining({ name: "Existing Key" }),
+    expect(mocks.apiKeyEntriesCreate).toHaveBeenLastCalledWith(
       expect.objectContaining({
         name: "Profile Key",
         "permission-profile-id": "standard",
@@ -352,7 +366,7 @@ describe("ApiKeysPage", () => {
         "allowed-models": ["gpt-5.4"],
         "system-prompt": "Use the standard workspace prompt.",
       }),
-    ]);
+    );
     expect(mocks.fetchConfigYaml).not.toHaveBeenCalled();
     expect(mocks.saveConfigYaml).not.toHaveBeenCalled();
   });

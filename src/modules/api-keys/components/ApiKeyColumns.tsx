@@ -23,11 +23,11 @@ import type { VirtualTableColumn } from "@/modules/ui/VirtualTable";
 type CreateApiKeyColumnsOptions = {
   t: TFunction;
   userNameById: Map<number, string>;
-  onToggleDisable: (index: number) => void;
+  onToggleDisable: (entry: ApiKeyEntry) => void;
   onViewUsage: (entry: ApiKeyEntry) => void;
   onCopy: (key: string) => void;
-  onEdit: (index: number) => void;
-  onDelete: (index: number) => void;
+  onEdit: (entry: ApiKeyEntry) => void;
+  onDelete: (entry: ApiKeyEntry) => void;
 };
 
 export const createApiKeyColumns = ({
@@ -45,10 +45,10 @@ export const createApiKeyColumns = ({
     width: "w-[72px] min-w-[72px]",
     headerClassName: "text-center",
     cellClassName: "text-center",
-    render: (row, idx) => (
+    render: (row) => (
       <button
         type="button"
-        onClick={() => onToggleDisable(idx)}
+        onClick={() => onToggleDisable(row)}
         aria-label={
           row.disabled ? t("api_keys_page.click_enable") : t("api_keys_page.click_disable")
         }
@@ -277,8 +277,13 @@ export const createApiKeyColumns = ({
               {row["allowed-channel-groups"].length}
             </span>
             <span className="block min-w-0 flex-1 truncate text-slate-500 dark:text-white/50">
-              {row["allowed-channel-groups"][0]}
+              {row["allowed-channel-groups"].slice(0, 2).join(", ")}
             </span>
+            {row["allowed-channel-groups"].length > 2 && (
+              <span className="flex-shrink-0 text-[10px] text-slate-400 dark:text-white/40">
+                +{row["allowed-channel-groups"].length - 2}
+              </span>
+            )}
           </span>
         </HoverTooltip>
       ) : (
@@ -335,7 +340,7 @@ export const createApiKeyColumns = ({
     key: "actions",
     label: t("api_keys_page.col_actions"),
     width: "w-[140px] min-w-[140px]",
-    render: (row, idx) => {
+    render: (row) => {
       const viewUsageLabel = t("api_keys_page.view_usage");
       const copyKeyLabel = t("api_keys_page.copy_key");
       const editLabel = t("common.edit");
@@ -366,7 +371,7 @@ export const createApiKeyColumns = ({
           <HoverTooltip content={editLabel}>
             <button
               type="button"
-              onClick={() => onEdit(idx)}
+              onClick={() => onEdit(row)}
               className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-amber-600 dark:text-white/50 dark:hover:bg-neutral-800 dark:hover:text-amber-400"
               aria-label={editLabel}
             >
@@ -376,7 +381,7 @@ export const createApiKeyColumns = ({
           <HoverTooltip content={deleteLabel}>
             <button
               type="button"
-              onClick={() => onDelete(idx)}
+              onClick={() => onDelete(row)}
               className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-white/50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
               aria-label={deleteLabel}
             >

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, KeyRound, RefreshCw } from "lucide-react";
-import { apiKeyEntriesApi, apiKeysApi, type ApiKeyEntry } from "@/lib/http/apis/api-keys";
+import { Plus, KeyRound, RefreshCw, Search } from "lucide-react";
+import { apiKeyEntriesApi, type ApiKeyEntry } from "@/lib/http/apis/api-keys";
 import {
   applyApiKeyPermissionProfile,
   apiKeyPermissionProfilesApi,
@@ -13,7 +13,6 @@ import { usersApi, type User } from "@/lib/http/apis/users";
 import {
   generateApiKey,
   makeEmptyApiKeyForm,
-  maskApiKey,
 } from "@/modules/api-keys/apiKeyPageUtils";
 import { createApiKeyColumns } from "@/modules/api-keys/components/ApiKeyColumns";
 import { DeleteApiKeyModal } from "@/modules/api-keys/components/DeleteApiKeyModal";
@@ -55,21 +54,34 @@ async function copyTextToClipboard(text: string): Promise<boolean> {
   }
 }
 
+const STATUS_FILTER_OPTIONS = [
+  { value: "", labelKey: "api_keys_page.filter_status_all" },
+  { value: "enabled", labelKey: "api_keys_page.filter_status_enabled" },
+  { value: "disabled", labelKey: "api_keys_page.filter_status_disabled" },
+];
+
 export function ApiKeysPage() {
   const { t } = useTranslation();
   const { notify } = useToast();
 
   const [entries, setEntries] = useState<ApiKeyEntry[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [userFilter, setUserFilter] = useState("");
+  const [channelGroupFilter, setChannelGroupFilter] = useState("");
   const [showCreate, setShowCreate] = useState(false);
-  const [editIndex, setEditIndex] = useState<number | null>(null);
-  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const [editEntry, setEditEntry] = useState<ApiKeyEntry | null>(null);
+  const [deleteEntry, setDeleteEntry] = useState<ApiKeyEntry | null>(null);
   const [deleteLogsOnDelete, setDeleteLogsOnDelete] = useState(true);
   const [saving, setSaving] = useState(false);
   const [permissionProfiles, setPermissionProfiles] = useState<ApiKeyPermissionProfile[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [form, setForm] = useState<ApiKeyFormValues>(() => makeEmptyApiKeyForm());
-  const { channelGroupItems, channelGroupByName, fetchModelOptions, refreshPermissionOptions } =
+  const { channelGroupItems, channelGroupByName, refreshPermissionOptions } =
     useApiKeyPermissionOptions();
   const {
     usageViewKey,
@@ -111,41 +123,32 @@ export function ApiKeysPage() {
 
   /* ─── load ─── */
 
+  const loadReferenceData = useCallback(async () => {
+    const [profilesData, usersData] = await Promise.all([
+      apiKeyPermissionProfilesApi.list().catch(() => [] as ApiKeyPermissionProfile[]),
+      usersApi.list({ page: 1, page_size: 500 }).catch(() => ({ users: [] as User[], total: 0 })),
+    ]);
+    setPermissionProfiles(profilesData);
+    setUsers(usersData.users ?? []);
+  }, []);
+
+  useEffect(() => {
+    void loadReferenceData();
+  }, [loadReferenceData]);
+
   const loadEntries = useCallback(async () => {
     setLoading(true);
     try {
-      const [entriesData, legacyKeys, profilesData, usersData] = await Promise.all([
-        apiKeyEntriesApi.list(),
-        apiKeysApi.list().catch(() => [] as string[]),
-        apiKeyPermissionProfilesApi.list().catch(() => [] as ApiKeyPermissionProfile[]),
-        usersApi.list({ page: 1, page_size: 500 }).catch(() => ({ users: [] as User[], total: 0 })),
-      ]);
-      setPermissionProfiles(profilesData);
-      setUsers(usersData.users ?? []);
-
-      // Auto-migrate: old api-keys not in api-key-entries get added as unnamed entries
-      const entryKeySet = new Set(entriesData.map((e) => e.key));
-      const newEntries = legacyKeys
-        .filter((k: string) => k && !entryKeySet.has(k))
-        .map((k: string): ApiKeyEntry => ({ key: k, "created-at": new Date().toISOString() }));
-
-      let finalEntries: ApiKeyEntry[];
-      if (newEntries.length > 0) {
-        const merged = [...entriesData, ...newEntries];
-        try {
-          await apiKeyEntriesApi.replace(merged);
-          notify({
-            type: "success",
-            message: t("api_keys_page.auto_import", { count: newEntries.length }),
-          });
-        } catch {
-          // silent
-        }
-        finalEntries = merged;
-      } else {
-        finalEntries = entriesData;
-      }
-      setEntries(finalEntries);
+      const res = await apiKeyEntriesApi.listPage({
+        page,
+        page_size: pageSize,
+        search: search || undefined,
+        status: statusFilter || undefined,
+        user_id: userFilter ? Number(userFilter) : undefined,
+        channel_group: channelGroupFilter || undefined,
+      });
+      setEntries(res.entries);
+      setTotal(res.total);
       // Load models after entries are available (needs a valid API key)
       void refreshPermissionOptions();
     } catch (err: unknown) {
@@ -156,11 +159,25 @@ export function ApiKeysPage() {
     } finally {
       setLoading(false);
     }
-  }, [notify, refreshPermissionOptions, t]);
+  }, [page, pageSize, search, statusFilter, userFilter, channelGroupFilter, notify, refreshPermissionOptions, t]);
 
   useEffect(() => {
     void loadEntries();
   }, [loadEntries]);
+
+  /* ─── search debounce ─── */
+
+  const [searchInput, setSearchInput] = useState(search);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const hasFilters = Boolean(search || statusFilter || userFilter || channelGroupFilter);
 
   const permissionProfileById = useMemo(
     () => new Map(permissionProfiles.map((profile) => [profile.id, profile])),
@@ -212,21 +229,19 @@ export function ApiKeysPage() {
 
   /* ─── toggle disable ─── */
 
-  const handleToggleDisable = async (index: number) => {
-    const entry = entries[index];
-    const updated = { ...entry, disabled: !entry.disabled };
-    const newEntries = [...entries];
-    newEntries[index] = updated;
-
+  const handleToggleDisable = async (entry: ApiKeyEntry) => {
     try {
-      await apiKeyEntriesApi.replace(newEntries);
-      setEntries(newEntries);
+      await apiKeyEntriesApi.update({
+        match: entry.key,
+        value: { disabled: !entry.disabled },
+      });
       notify({
         type: "success",
-        message: updated.disabled
+        message: !entry.disabled
           ? t("api_keys_page.disabled_toast", { name: entry.name || t("api_keys_page.unnamed") })
           : t("api_keys_page.enabled_toast", { name: entry.name || t("api_keys_page.unnamed") }),
       });
+      await loadEntries();
     } catch (err: unknown) {
       notify({
         type: "error",
@@ -264,7 +279,7 @@ export function ApiKeysPage() {
         newEntry,
         selectedPermissionProfile(form.permissionProfileId),
       );
-      await apiKeyEntriesApi.replace([...entries, profiledEntry]);
+      await apiKeyEntriesApi.create(profiledEntry);
       notify({ type: "success", message: t("api_keys_page.created_success") });
       setShowCreate(false);
       await loadEntries();
@@ -280,8 +295,7 @@ export function ApiKeysPage() {
 
   /* ─── edit ─── */
 
-  const handleOpenEdit = (index: number) => {
-    const entry = entries[index];
+  const handleOpenEdit = (entry: ApiKeyEntry) => {
     const next = {
       name: entry.name || "",
       key: entry.key,
@@ -300,47 +314,47 @@ export function ApiKeysPage() {
       systemPrompt: entry["system-prompt"] || "",
     };
     setForm(next);
-    setEditIndex(index);
+    setEditEntry(entry);
   };
 
   const handleEdit = async () => {
-    if (editIndex === null) return;
+    if (editEntry === null) return;
     if (!form.name.trim()) {
       notify({ type: "error", message: t("api_keys_page.name_required") });
       return;
     }
-    const originalKey = entries[editIndex].key;
+    const originalKey = editEntry.key;
     const newKey = form.key.trim();
     setSaving(true);
     try {
       await apiKeyEntriesApi.update({
-        index: editIndex,
+        match: originalKey,
         value: {
           ...(newKey !== originalKey ? { key: newKey } : {}),
           name: form.name.trim(),
           ...(form.userId ? { "user-id": Number(form.userId) } : { "user-id": null }),
           ...(form.permissionProfileId === CUSTOM_PERMISSION_PROFILE_ID
             ? {
-                "permission-profile-id": entries[editIndex]["permission-profile-id"] ?? "",
-                "daily-limit": entries[editIndex]["daily-limit"] ?? 0,
-                "total-quota": entries[editIndex]["total-quota"] ?? 0,
-                "spending-limit": entries[editIndex]["spending-limit"] ?? 0,
-                "concurrency-limit": entries[editIndex]["concurrency-limit"] ?? 0,
-                "rpm-limit": entries[editIndex]["rpm-limit"] ?? 0,
-                "tpm-limit": entries[editIndex]["tpm-limit"] ?? 0,
-                "allowed-models": entries[editIndex]["allowed-models"] ?? [],
-                "allowed-channels": entries[editIndex]["allowed-channels"] ?? [],
-                "allowed-channel-groups": entries[editIndex]["allowed-channel-groups"] ?? [],
-                "system-prompt": entries[editIndex]["system-prompt"] ?? "",
+                "permission-profile-id": editEntry["permission-profile-id"] ?? "",
+                "daily-limit": editEntry["daily-limit"] ?? 0,
+                "total-quota": editEntry["total-quota"] ?? 0,
+                "spending-limit": editEntry["spending-limit"] ?? 0,
+                "concurrency-limit": editEntry["concurrency-limit"] ?? 0,
+                "rpm-limit": editEntry["rpm-limit"] ?? 0,
+                "tpm-limit": editEntry["tpm-limit"] ?? 0,
+                "allowed-models": editEntry["allowed-models"] ?? [],
+                "allowed-channels": editEntry["allowed-channels"] ?? [],
+                "allowed-channel-groups": editEntry["allowed-channel-groups"] ?? [],
+                "system-prompt": editEntry["system-prompt"] ?? "",
               }
             : applyApiKeyPermissionProfile(
                 {} as ApiKeyEntry,
                 selectedPermissionProfile(form.permissionProfileId),
               )),
-        },
+        } as Partial<ApiKeyEntry>,
       });
       notify({ type: "success", message: t("api_keys_page.updated_success") });
-      setEditIndex(null);
+      setEditEntry(null);
       await loadEntries();
     } catch (err: unknown) {
       notify({
@@ -355,13 +369,13 @@ export function ApiKeysPage() {
   /* ─── delete ─── */
 
   const handleDelete = async () => {
-    if (deleteIndex === null) return;
+    if (deleteEntry === null) return;
     setSaving(true);
     try {
-      const entry = entries[deleteIndex];
+      const entry = deleteEntry;
       const response = (await apiKeyEntriesApi.delete({
         id: entry.id,
-        index: entry.id ? undefined : deleteIndex,
+        key: entry.id ? undefined : entry.key,
         deleteLogs: deleteLogsOnDelete,
       })) as { logs_deleted?: number } | undefined;
       const logsDeleted =
@@ -373,9 +387,14 @@ export function ApiKeysPage() {
             ? t("api_keys_page.deleted_success_with_logs", { count: logsDeleted })
             : t("api_keys_page.deleted_success"),
       });
-      setDeleteIndex(null);
+      setDeleteEntry(null);
       setDeleteLogsOnDelete(true);
-      await loadEntries();
+      // Step back a page if we removed the last row on the current page
+      if (entries.length === 1 && page > 1) {
+        setPage((p) => Math.max(1, p - 1));
+      } else {
+        await loadEntries();
+      }
     } catch (err: unknown) {
       notify({
         type: "error",
@@ -386,9 +405,9 @@ export function ApiKeysPage() {
     }
   };
 
-  const handleOpenDelete = (index: number) => {
+  const handleOpenDelete = (entry: ApiKeyEntry) => {
     setDeleteLogsOnDelete(true);
-    setDeleteIndex(index);
+    setDeleteEntry(entry);
   };
 
   /* ─── copy ─── */
@@ -408,12 +427,13 @@ export function ApiKeysPage() {
       createApiKeyColumns({
         t,
         userNameById,
-        onToggleDisable: (index) => void handleToggleDisable(index),
+        onToggleDisable: (entry) => void handleToggleDisable(entry),
         onViewUsage: handleViewUsage,
         onCopy: (key) => void handleCopy(key),
         onEdit: handleOpenEdit,
         onDelete: handleOpenDelete,
       }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       handleToggleDisable,
       handleViewUsage,
@@ -451,25 +471,146 @@ export function ApiKeysPage() {
         }
         loading={loading}
       >
-        {entries.length === 0 ? (
-          <EmptyState
-            title={t("api_keys_page.no_keys")}
-            description={t("api_keys_page.no_keys_desc")}
-            icon={<KeyRound size={32} className="text-slate-400" />}
-          />
+        {/* Search & Filter bar */}
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <div className="relative min-w-[200px] flex-1">
+            <Search
+              size={14}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40"
+            />
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder={t("api_keys_page.search_placeholder")}
+              className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:placeholder:text-white/30 dark:focus:border-blue-400 dark:focus:ring-blue-400/20"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400/20"
+          >
+            {STATUS_FILTER_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {t(opt.labelKey)}
+              </option>
+            ))}
+          </select>
+          <select
+            value={userFilter}
+            onChange={(e) => {
+              setUserFilter(e.target.value);
+              setPage(1);
+            }}
+            className="max-w-[180px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400/20"
+          >
+            <option value="">{t("api_keys_page.filter_user_all")}</option>
+            <option value="-1">{t("api_keys_page.filter_user_unassigned")}</option>
+            {users.map((u) => (
+              <option key={u.id} value={String(u.id)}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={channelGroupFilter}
+            onChange={(e) => {
+              setChannelGroupFilter(e.target.value);
+              setPage(1);
+            }}
+            className="max-w-[180px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400/20"
+          >
+            <option value="">{t("api_keys_page.filter_group_all")}</option>
+            {channelGroupItems.map((group) => {
+              const groupName = String(group.name ?? "").trim().toLowerCase();
+              if (!groupName) return null;
+              return (
+                <option key={groupName} value={groupName}>
+                  {groupName}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+
+        {entries.length === 0 && !loading ? (
+          hasFilters ? (
+            <EmptyState
+              title={t("api_keys_page.no_matches")}
+              description={t("api_keys_page.no_matches_desc")}
+              icon={<KeyRound size={32} className="text-slate-400" />}
+            />
+          ) : (
+            <EmptyState
+              title={t("api_keys_page.no_keys")}
+              description={t("api_keys_page.no_keys_desc")}
+              icon={<KeyRound size={32} className="text-slate-400" />}
+            />
+          )
         ) : (
           <VirtualTable<ApiKeyEntry>
             rows={entries}
             columns={apiKeyColumns}
             rowKey={(row) => String(row.id ?? row.key)}
             rowHeight={44}
-            height="h-[calc(100dvh-260px)] max-h-[70vh]"
+            height="h-[calc(100dvh-360px)] max-h-[60vh]"
             minHeight="min-h-[320px]"
             minWidth="min-w-[1436px]"
             caption={t("api_keys_page.table_caption")}
             emptyText={t("api_keys_page.no_api_keys")}
             rowClassName={(row) => (row.disabled ? "opacity-50" : "")}
           />
+        )}
+
+        {/* Pagination */}
+        {total > 0 && (
+          <div className="mt-4 flex items-center justify-between text-sm text-slate-600 dark:text-white/60">
+            <div className="flex items-center gap-2">
+              <span>{t("api_keys_page.page_size_label")}</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
+              >
+                {[10, 20, 50].map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="xs"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                {t("api_keys_page.prev")}
+              </Button>
+              <span className="tabular-nums">
+                {page} / {totalPages}
+              </span>
+              <Button
+                variant="ghost"
+                size="xs"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                {t("api_keys_page.next")}
+              </Button>
+              <span className="ml-2 text-xs text-slate-400 dark:text-white/40">
+                {t("api_keys_page.total_count", { count: total })}
+              </span>
+            </div>
+          </div>
         )}
       </Card>
 
@@ -489,27 +630,27 @@ export function ApiKeysPage() {
 
       <ApiKeyFormModal
         t={t}
-        open={editIndex !== null}
+        open={editEntry !== null}
         editMode
         saving={saving}
         form={form}
         setForm={setForm}
         permissionProfileOptions={permissionProfileOptions}
         userOptions={userOptions}
-        onClose={() => setEditIndex(null)}
+        onClose={() => setEditEntry(null)}
         onSubmit={handleEdit}
         regenerateKey={() => setForm((prev) => ({ ...prev, key: generateApiKey() }))}
       />
 
       <DeleteApiKeyModal
         t={t}
-        entry={deleteIndex === null ? null : (entries[deleteIndex] ?? null)}
-        open={deleteIndex !== null}
+        entry={deleteEntry}
+        open={deleteEntry !== null}
         saving={saving}
         deleteLogsOnDelete={deleteLogsOnDelete}
         onDeleteLogsChange={setDeleteLogsOnDelete}
         onClose={() => {
-          setDeleteIndex(null);
+          setDeleteEntry(null);
           setDeleteLogsOnDelete(true);
         }}
         onConfirm={handleDelete}
