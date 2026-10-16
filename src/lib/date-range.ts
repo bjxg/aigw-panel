@@ -1,3 +1,5 @@
+import { useCallback, useState } from "react";
+
 /**
  * Shared date-range selection model used by the dashboard / monitor /
  * request-logs pages. Preset ranges map to the backend `days` parameter;
@@ -106,4 +108,45 @@ export function rangeAnchorEndLocal(selection: RangeSelection): Date | null {
     return today;
   }
   return null;
+}
+
+const RANGE_STORAGE_KEY = "monitor:time-range:v1";
+
+function readTimeRange(): RangeSelection {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(RANGE_STORAGE_KEY) ?? "null");
+    if (
+      value?.kind === "preset" &&
+      ["today", "yesterday", "7d", "14d", "30d"].includes(value.preset)
+    ) {
+      return { kind: "preset", preset: value.preset };
+    }
+    if (
+      value?.kind === "custom" &&
+      typeof value.start === "string" &&
+      typeof value.end === "string"
+    ) {
+      const start = parseYMD(value.start);
+      const end = parseYMD(value.end);
+      if (start && end && start <= end)
+        return { kind: "custom", start: value.start, end: value.end };
+    }
+  } catch {
+    // 存储不可用或数据损坏时保持页面可用。
+  }
+  return { kind: "preset", preset: "7d" };
+}
+
+/** 三个管理统计页面共用监控中心的日期缓存，保留已有选择。 */
+export function usePersistedDateRange() {
+  const [range, setRange] = useState<RangeSelection>(readTimeRange);
+  const selectRange = useCallback((value: RangeSelection) => {
+    setRange(value);
+    try {
+      window.localStorage.setItem(RANGE_STORAGE_KEY, JSON.stringify(value));
+    } catch {
+      // 浏览器禁用存储时仍允许正常切换日期。
+    }
+  }, []);
+  return [range, selectRange] as const;
 }

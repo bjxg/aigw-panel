@@ -20,7 +20,7 @@ import {
   type RequestLogsRow as LogRow,
 } from "@/modules/monitor/requestLogsShared";
 import { DateRangeTabs } from "@/modules/ui/DateRangeTabs";
-import { resolveRangeQuery, type RangeSelection } from "@/lib/date-range";
+import { resolveRangeQuery, usePersistedDateRange } from "@/lib/date-range";
 type StatusFilter = "" | "success" | "failed";
 const DEFAULT_LOG_STATS = { total: 0, success_rate: 0, total_tokens: 0, total_cost: 0 };
 
@@ -90,7 +90,7 @@ export function RequestLogsPage() {
   }>(DEFAULT_LOG_STATS);
 
   // Filters
-  const [timeRange, setTimeRange] = useState<RangeSelection>({ kind: "preset", preset: "7d" });
+  const [timeRange, setTimeRange] = usePersistedDateRange();
   const [apiQuery, setApiQuery] = useState("");
   const [modelQuery, setModelQuery] = useState("");
   const [channelQuery, setChannelQuery] = useState("");
@@ -101,9 +101,14 @@ export function RequestLogsPage() {
   const [allUsers, setAllUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    usersApi.list({ page: 1, page_size: 500 }).then((res) => {
-      setAllUsers(res.users ?? []);
-    }).catch(() => {/* silent */});
+    usersApi
+      .list({ page: 1, page_size: 500 })
+      .then((res) => {
+        setAllUsers(res.users ?? []);
+      })
+      .catch(() => {
+        /* silent */
+      });
   }, []);
 
   const userNameById = useMemo(

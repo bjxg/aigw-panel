@@ -25,12 +25,7 @@ import {
 } from "@/modules/monitor/MonitorDashboardSections";
 import { useMonitorDashboardState } from "@/modules/monitor/hooks/useMonitorDashboardState";
 import { MonitorToolbarSection } from "@/modules/monitor/MonitorToolbarSection";
-import {
-  presetDays,
-  rangeAnchorEndLocal,
-  resolveRangeQuery,
-  yesterdayYMD,
-} from "@/lib/date-range";
+import { presetDays, rangeAnchorEndLocal, resolveRangeQuery, yesterdayYMD } from "@/lib/date-range";
 import { useTranslation } from "react-i18next";
 
 const DAILY_LEGEND_KEYS = {
@@ -155,6 +150,7 @@ export function MonitorPage() {
 
     return {
       totalRequests: requests,
+      totalUsers: chartData?.total_users,
       successCount: success,
       failureCount: failed,
       successRate: rate,

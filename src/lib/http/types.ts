@@ -124,6 +124,7 @@ export interface UsageData {
 }
 
 export interface ChartDataResponse {
+  total_users?: number;
   daily_series: {
     date: string;
     requests: number;

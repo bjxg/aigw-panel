@@ -20,6 +20,7 @@ import { EChart } from "@/modules/ui/charts/EChart";
 import { ChartLegend } from "@/modules/ui/charts/ChartLegend";
 import { useInterval } from "@/hooks/useInterval";
 import {
+  usePersistedDateRange,
   presetDays,
   resolveRangeQuery,
   type RangeSelection,
@@ -358,7 +359,7 @@ export function DashboardPage() {
   const { notify } = useToast();
   const { stats, connected } = useSystemStats(5);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [range, setRange] = useState<RangeSelection>({ kind: "preset", preset: "7d" });
+  const [range, setRange] = usePersistedDateRange();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [throughputLegend, setThroughputLegend] = useState({ rpm: true, tpm: true });
@@ -440,12 +441,7 @@ export function DashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <DateRangeTabs
-            value={range}
-            onChange={setRange}
-            presets={["today", "yesterday", "7d", "30d"]}
-            ariaLabel={t("dashboard.time_range")}
-          />
+          <DateRangeTabs value={range} onChange={setRange} ariaLabel={t("dashboard.time_range")} />
           <Button
             variant="secondary"
             size="sm"

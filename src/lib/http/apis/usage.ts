@@ -91,6 +91,7 @@ export const usageApi = {
       signal: options?.signal,
     });
     return {
+      total_users: resp?.total_users,
       daily_series: Array.isArray(resp?.daily_series) ? resp.daily_series : [],
       model_distribution: Array.isArray(resp?.model_distribution) ? resp.model_distribution : [],
       hourly_tokens: Array.isArray(resp?.hourly_tokens) ? resp.hourly_tokens : [],

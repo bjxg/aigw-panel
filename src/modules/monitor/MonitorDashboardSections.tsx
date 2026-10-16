@@ -1,4 +1,4 @@
-import { Activity, ChartSpline, Coins, ShieldCheck, Sigma } from "lucide-react";
+import { Activity, ChartSpline, Coins, ShieldCheck, Sigma, Users } from "lucide-react";
 import type { HourWindow } from "@/modules/monitor/monitor-constants";
 import { formatNumber, formatRate } from "@/modules/monitor/monitor-utils";
 import { AnimatedNumber } from "@/modules/ui/AnimatedNumber";
@@ -22,6 +22,7 @@ export function MonitorKpiSection({
   t: (key: string, options?: Record<string, unknown>) => string;
   metrics: {
     totalRequests: number;
+    totalUsers: number | undefined;
     successCount: number;
     failureCount: number;
     successRate: number;
@@ -36,12 +37,24 @@ export function MonitorKpiSection({
   return (
     <>
       <Reveal>
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <KpiCard
             title={t("monitor.total_requests")}
             value={<AnimatedNumber value={metrics.totalRequests} format={formatNumber} />}
             hint={t("monitor.filtered_by_time")}
             icon={Activity}
+          />
+          <KpiCard
+            title={t("monitor.total_users")}
+            value={
+              metrics.totalUsers === undefined ? (
+                "—"
+              ) : (
+                <AnimatedNumber value={metrics.totalUsers} format={formatNumber} />
+              )
+            }
+            hint={t("monitor.total_users_hint")}
+            icon={Users}
           />
           <KpiCard
             title={t("monitor.success_rate")}

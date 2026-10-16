@@ -1530,6 +1530,8 @@
     "author": "作者"
   },
   "monitor": {
+    "total_users": "总用户数",
+    "total_users_hint": "所选时间内发起请求的去重用户",
     "title": "监控中心",
     "time_range": "时间范围",
     "today": "今天",

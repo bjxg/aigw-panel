@@ -1518,6 +1518,8 @@
     "author": "Author"
   },
   "monitor": {
+    "total_users": "Total Users",
+    "total_users_hint": "Unique users with requests in the selected period",
     "title": "Monitor Center",
     "time_range": "Time Range",
     "today": "Today",

@@ -84,6 +84,7 @@
 
 ## 6. 关键路径速查（按需补全）
 
+- 共享日期选择：`src/lib/date-range.ts` 的 `usePersistedDateRange`，供监控中心、请求日志、仪表盘共用浏览器日期缓存。
 - 应用入口：`src/main.tsx`
 - 历史多入口脚本：`src/management.tsx`（默认不再构建产物）
 - 主要模块目录：`src/`
