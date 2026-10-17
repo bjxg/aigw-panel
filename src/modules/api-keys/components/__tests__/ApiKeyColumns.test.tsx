@@ -85,7 +85,7 @@ describe("ApiKeyColumns", () => {
     expect(screen.getByRole("tooltip")).toHaveStyle({ left: "76px", top: "140px" });
   });
 
-  test("keeps the API key column at the wider fixed width", () => {
+  test("keeps the API key column at the fixed width", () => {
     const columns = createApiKeyColumns({
       t,
       userNameById: new Map<number, string>(),
@@ -97,7 +97,7 @@ describe("ApiKeyColumns", () => {
     });
     const keyColumn = columns.find((column) => column.key === "key");
 
-    expect(keyColumn?.width).toBe("w-[320px] min-w-[320px]");
+    expect(keyColumn?.width).toBe("w-[200px] min-w-[200px]");
   });
 
   test("shows API key spending limits as a dedicated cost column", async () => {

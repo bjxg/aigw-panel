@@ -2375,6 +2375,9 @@
     "anthropic_processing_hint": "开启时将执行 Anthropic 专有处理（伪装、缓存控制、工具前缀等）。如 Base URL 指向第三方 Claude 兼容 API（如 Kimi），建议关闭以提升性能。"
   },
   "request_logs": {
+    "col_client": "客户端",
+    "col_client_version": "客户端版本",
+    "client_unknown": "未知",
     "title": "请求日志",
     "all_keys": "全部密钥",
     "all_models": "全部模型",

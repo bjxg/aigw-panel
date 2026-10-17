@@ -1,16 +1,20 @@
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import type { UsageLogItem } from "@/lib/http/apis/usage";
 import { parseUsageTimestampMs } from "@/modules/monitor/monitor-utils";
 import { Tabs, TabsList, TabsTrigger } from "@/modules/ui/Tabs";
-import { OverflowTooltip } from "@/modules/ui/Tooltip";
+import { HoverTooltip, OverflowTooltip } from "@/modules/ui/Tooltip";
 import { Select } from "@/modules/ui/Select";
+
+const CLIENT_DISPLAY_NAMES: Record<string, string> = {
+  codex: "Codex",
+  claudecode: "Claude Code",
+  pi: "Pi",
+  opencode: "OpenCode",
+  workbuddy: "WorkBuddy",
+  codebuddy: "CodeBuddy",
+};
 
 export type TimeRange = 1 | 7 | 14 | 30;
 
@@ -24,6 +28,10 @@ export type RequestLogsRow = {
   userName: string;
   isSystemCall: boolean;
   channelName: string;
+  clientUserAgent: string;
+  clientName: string;
+  clientVariant: string;
+  clientVersion: string;
   model: string;
   failed: boolean;
   latencyText: string;
@@ -47,13 +55,11 @@ export interface RequestLogsTableColumn<T> {
 
 export const DEFAULT_REQUEST_LOG_PAGE_SIZE = 50;
 export const REQUEST_LOG_PAGE_SIZE_OPTIONS = [20, 50, 100];
-export const REQUEST_LOG_TIME_RANGES: readonly TimeRange[] = [
-  1, 7, 14, 30,
-] as const;
+export const REQUEST_LOG_TIME_RANGES: readonly TimeRange[] = [1, 7, 14, 30] as const;
 export const SYSTEM_REQUEST_LOG_FILTER_VALUE = "__system__";
 
 export type RequestLogKeyOption = {
-  value: string;  // "" for all, SYSTEM_REQUEST_LOG_FILTER_VALUE for system, String(id) for specific keys
+  value: string; // "" for all, SYSTEM_REQUEST_LOG_FILTER_VALUE for system, String(id) for specific keys
   label: string;
   searchText?: string;
 };
@@ -61,8 +67,7 @@ export type RequestLogKeyOption = {
 export const maskRequestLogApiKey = (value: string): string => {
   const trimmed = value.trim();
   if (!trimmed) return "--";
-  if (trimmed.length <= 10)
-    return `${trimmed.slice(0, 2)}***${trimmed.slice(-2)}`;
+  if (trimmed.length <= 10) return `${trimmed.slice(0, 2)}***${trimmed.slice(-2)}`;
   return `${trimmed.slice(0, 6)}***${trimmed.slice(-4)}`;
 };
 
@@ -94,8 +99,8 @@ export const toRequestLogsRow = (
   const isSystemCall = item.api_key_id === 0;
   const userId = item.user_id ?? 0;
   // Prefer server-provided user_name; fall back to local mapping
-  const userName = item.user_name
-    || (userId && userNameById ? (userNameById.get(userId) ?? "") : "");
+  const userName =
+    item.user_name || (userId && userNameById ? (userNameById.get(userId) ?? "") : "");
   return {
     id: String(item.id),
     timestamp: item.timestamp,
@@ -106,6 +111,10 @@ export const toRequestLogsRow = (
     userName,
     isSystemCall,
     channelName: item.channel_name || "",
+    clientUserAgent: item.client_user_agent || "",
+    clientName: item.client_name || "",
+    clientVariant: item.client_variant || "",
+    clientVersion: item.client_version || "",
     model: item.model,
     failed: item.failed,
     latencyText: formatRequestLogLatencyMs(item.latency_ms),
@@ -119,10 +128,7 @@ export const toRequestLogsRow = (
   };
 };
 
-export const isSystemRequestLogKey = (
-  apiKeyID: number,
-  _apiKeyName?: string,
-): boolean => {
+export const isSystemRequestLogKey = (apiKeyID: number, _apiKeyName?: string): boolean => {
   return apiKeyID === 0;
 };
 
@@ -163,16 +169,11 @@ export function RequestLogsTimeRangeSelector({
 }) {
   const { t } = useTranslation();
   return (
-    <Tabs
-      value={String(value)}
-      onValueChange={(next) => onChange(Number(next) as TimeRange)}
-    >
+    <Tabs value={String(value)} onValueChange={(next) => onChange(Number(next) as TimeRange)}>
       <TabsList>
         {REQUEST_LOG_TIME_RANGES.map((range) => {
           const label =
-            range === 1
-              ? t("request_logs.today")
-              : t("request_logs.n_days", { count: range });
+            range === 1 ? t("request_logs.today") : t("request_logs.n_days", { count: range });
           return (
             <TabsTrigger key={range} value={String(range)}>
               {label}
@@ -194,8 +195,7 @@ export function buildRequestLogsColumns(
       key: "id",
       label: t("request_logs.col_id"),
       width: "w-20",
-      cellClassName:
-        "font-mono text-xs tabular-nums text-slate-500 dark:text-white/50",
+      cellClassName: "font-mono text-xs tabular-nums text-slate-500 dark:text-white/50",
       render: (row) => (
         <OverflowTooltip content={`#${row.id}`} className="block min-w-0">
           <span className="block min-w-0 truncate">#{row.id}</span>
@@ -206,16 +206,13 @@ export function buildRequestLogsColumns(
       key: "timestamp",
       label: t("request_logs.col_time"),
       width: "w-52",
-      cellClassName:
-        "font-mono text-xs tabular-nums text-slate-700 dark:text-slate-200",
+      cellClassName: "font-mono text-xs tabular-nums text-slate-700 dark:text-slate-200",
       render: (row) => (
         <OverflowTooltip
           content={formatRequestLogTimestamp(row.timestamp)}
           className="block min-w-0"
         >
-          <span className="block min-w-0 truncate">
-            {formatRequestLogTimestamp(row.timestamp)}
-          </span>
+          <span className="block min-w-0 truncate">{formatRequestLogTimestamp(row.timestamp)}</span>
         </OverflowTooltip>
       ),
     },
@@ -225,19 +222,13 @@ export function buildRequestLogsColumns(
       width: "w-32",
       render: (row) => (
         <OverflowTooltip
-          content={
-            row.isSystemCall
-              ? t("request_logs.system_call")
-              : row.apiKeyName || "--"
-          }
+          content={row.isSystemCall ? t("request_logs.system_call") : row.apiKeyName || "--"}
           className="block min-w-0"
         >
           <span
             className={`block min-w-0 truncate text-xs font-medium ${row.apiKeyName || row.isSystemCall ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 dark:text-white/30"}`}
           >
-            {row.isSystemCall
-              ? t("request_logs.system_call")
-              : row.apiKeyName || "--"}
+            {row.isSystemCall ? t("request_logs.system_call") : row.apiKeyName || "--"}
           </span>
         </OverflowTooltip>
       ),
@@ -258,6 +249,38 @@ export function buildRequestLogsColumns(
         ),
     },
     {
+      key: "clientName",
+      label: t("request_logs.col_client"),
+      width: "w-32",
+      render: (row) => {
+        const label =
+          CLIENT_DISPLAY_NAMES[row.clientName] ||
+          row.clientName ||
+          t("request_logs.client_unknown");
+        const tooltip =
+          row.clientName.trim() && row.clientVersion.trim()
+            ? row.clientVariant
+            : row.clientUserAgent;
+        return (
+          <HoverTooltip content={tooltip || "—"} className="block min-w-0">
+            <span tabIndex={0} className="block truncate">
+              {label}
+            </span>
+          </HoverTooltip>
+        );
+      },
+    },
+    {
+      key: "clientVersion",
+      label: t("request_logs.col_client_version"),
+      width: "w-28",
+      render: (row) => (
+        <OverflowTooltip content={row.clientVersion || "—"} className="block min-w-0">
+          <span className="block truncate font-mono text-xs">{row.clientVersion || "—"}</span>
+        </OverflowTooltip>
+      ),
+    },
+    {
       key: "model",
       label: t("request_logs.col_model"),
       width: "w-56",
@@ -272,10 +295,7 @@ export function buildRequestLogsColumns(
       label: t("request_logs.col_channel"),
       width: "w-32",
       render: (row) => (
-        <OverflowTooltip
-          content={row.channelName || "--"}
-          className="block min-w-0"
-        >
+        <OverflowTooltip content={row.channelName || "--"} className="block min-w-0">
           <span
             className={`block min-w-0 truncate text-xs font-medium ${row.channelName ? "text-violet-600 dark:text-violet-400" : "text-slate-400 dark:text-white/30"}`}
           >
@@ -311,8 +331,7 @@ export function buildRequestLogsColumns(
       label: t("request_logs.col_duration"),
       width: "w-24",
       headerClassName: "text-right",
-      cellClassName:
-        "text-right font-mono text-xs tabular-nums text-slate-700 dark:text-slate-200",
+      cellClassName: "text-right font-mono text-xs tabular-nums text-slate-700 dark:text-slate-200",
       render: (row) => (
         <OverflowTooltip content={row.latencyText} className="block min-w-0">
           <span className="block min-w-0 truncate">{row.latencyText}</span>
@@ -324,8 +343,7 @@ export function buildRequestLogsColumns(
       label: t("request_logs.col_first_token"),
       width: "w-24",
       headerClassName: "text-right",
-      cellClassName:
-        "text-right font-mono text-xs tabular-nums text-slate-700 dark:text-slate-200",
+      cellClassName: "text-right font-mono text-xs tabular-nums text-slate-700 dark:text-slate-200",
       render: (row) => (
         <OverflowTooltip content={row.firstTokenText} className="block min-w-0">
           <span className="block min-w-0 truncate">{row.firstTokenText}</span>
@@ -337,8 +355,7 @@ export function buildRequestLogsColumns(
       label: t("request_logs.col_input"),
       width: "w-24",
       headerClassName: "text-right",
-      cellClassName:
-        "text-right font-mono text-xs tabular-nums text-slate-700 dark:text-slate-200",
+      cellClassName: "text-right font-mono text-xs tabular-nums text-slate-700 dark:text-slate-200",
       render: (row) =>
         row.hasContent && onContentClick ? (
           <button
@@ -352,13 +369,8 @@ export function buildRequestLogsColumns(
             </span>
           </button>
         ) : (
-          <OverflowTooltip
-            content={row.inputTokens.toLocaleString()}
-            className="block min-w-0"
-          >
-            <span className="block min-w-0 truncate">
-              {row.inputTokens.toLocaleString()}
-            </span>
+          <OverflowTooltip content={row.inputTokens.toLocaleString()} className="block min-w-0">
+            <span className="block min-w-0 truncate">{row.inputTokens.toLocaleString()}</span>
           </OverflowTooltip>
         ),
     },
@@ -369,10 +381,7 @@ export function buildRequestLogsColumns(
       headerClassName: "text-right",
       cellClassName: "text-right font-mono text-xs tabular-nums",
       render: (row) => (
-        <OverflowTooltip
-          content={row.cachedTokens.toLocaleString()}
-          className="block min-w-0"
-        >
+        <OverflowTooltip content={row.cachedTokens.toLocaleString()} className="block min-w-0">
           <span
             className={`block min-w-0 truncate ${row.cachedTokens > 0 ? "font-semibold text-amber-600 dark:text-amber-400" : "text-slate-400 dark:text-white/30"}`}
           >
@@ -386,8 +395,7 @@ export function buildRequestLogsColumns(
       label: t("request_logs.col_output"),
       width: "w-24",
       headerClassName: "text-right",
-      cellClassName:
-        "text-right font-mono text-xs tabular-nums text-slate-700 dark:text-slate-200",
+      cellClassName: "text-right font-mono text-xs tabular-nums text-slate-700 dark:text-slate-200",
       render: (row) =>
         row.hasContent && onContentClick ? (
           <button
@@ -401,13 +409,8 @@ export function buildRequestLogsColumns(
             </span>
           </button>
         ) : (
-          <OverflowTooltip
-            content={row.outputTokens.toLocaleString()}
-            className="block min-w-0"
-          >
-            <span className="block min-w-0 truncate">
-              {row.outputTokens.toLocaleString()}
-            </span>
+          <OverflowTooltip content={row.outputTokens.toLocaleString()} className="block min-w-0">
+            <span className="block min-w-0 truncate">{row.outputTokens.toLocaleString()}</span>
           </OverflowTooltip>
         ),
     },
@@ -416,16 +419,10 @@ export function buildRequestLogsColumns(
       label: t("request_logs.col_total_token"),
       width: "w-28",
       headerClassName: "text-right",
-      cellClassName:
-        "text-right font-mono text-xs tabular-nums text-slate-900 dark:text-white",
+      cellClassName: "text-right font-mono text-xs tabular-nums text-slate-900 dark:text-white",
       render: (row) => (
-        <OverflowTooltip
-          content={row.totalTokens.toLocaleString()}
-          className="block min-w-0"
-        >
-          <span className="block min-w-0 truncate">
-            {row.totalTokens.toLocaleString()}
-          </span>
+        <OverflowTooltip content={row.totalTokens.toLocaleString()} className="block min-w-0">
+          <span className="block min-w-0 truncate">{row.totalTokens.toLocaleString()}</span>
         </OverflowTooltip>
       ),
     },
@@ -437,10 +434,7 @@ export function buildRequestLogsColumns(
       cellClassName:
         "text-right font-mono text-xs tabular-nums text-emerald-700 dark:text-emerald-400",
       render: (row) => (
-        <OverflowTooltip
-          content={`$${row.cost.toFixed(6)}`}
-          className="block min-w-0"
-        >
+        <OverflowTooltip content={`$${row.cost.toFixed(6)}`} className="block min-w-0">
           <span className="block min-w-0 truncate">${row.cost.toFixed(4)}</span>
         </OverflowTooltip>
       ),
@@ -519,10 +513,7 @@ export function RequestLogsPaginationBar({
 
         {pageNumbers.map((p, i) =>
           p === "..." ? (
-            <span
-              key={`dots-${i}`}
-              className="px-1 text-xs text-slate-400 dark:text-white/30"
-            >
+            <span key={`dots-${i}`} className="px-1 text-xs text-slate-400 dark:text-white/30">
               …
             </span>
           ) : (

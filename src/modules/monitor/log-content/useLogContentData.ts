@@ -127,7 +127,7 @@ export function useLogContentData({
 
     let cancelled = false;
     void fetchPart(logId, resolvedInitialTab).then(() => {
-      if (cancelled) return;
+      if (cancelled || resolvedInitialTab === "details") return;
       const other = resolvedInitialTab === "input" ? "output" : "input";
       window.setTimeout(() => {
         if (!cancelled) void fetchPart(logId, other, { prefetch: true });

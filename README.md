@@ -334,3 +334,7 @@ This project is open source. See the [LICENSE](LICENSE) file for details.
 <p align="center">
   Made with ❤️ for the <a href="https://github.com/bjxg/aigw">aigw</a> community
 </p>
+
+### 开发代理地址
+
+开发服务器默认将 API 请求代理到 `http://127.0.0.1:8217`。如本机端口被 IDE 转发占用，可在 `.env.development.local` 中设置 `AIGW_DEV_PROXY_TARGET=http://[::1]:8217`（需后端监听 IPv6），然后重启开发服务器。该本地文件被 Git 忽略；此配置仅用于开发代理，不进入前端构建产物。

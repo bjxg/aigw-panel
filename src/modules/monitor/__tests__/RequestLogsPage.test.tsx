@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import i18n from "@/i18n";
 import { RequestLogsPage } from "@/modules/monitor/RequestLogsPage";
@@ -8,6 +8,7 @@ import { ToastProvider } from "@/modules/ui/ToastProvider";
 const mocks = vi.hoisted(() => ({
   getUsageLogs: vi.fn(),
   getLogContent: vi.fn(),
+  getLogContentPart: vi.fn(),
 }));
 
 vi.mock("@/lib/http/apis", async (importOriginal) => {
@@ -18,6 +19,7 @@ vi.mock("@/lib/http/apis", async (importOriginal) => {
       ...mod.usageApi,
       getUsageLogs: mocks.getUsageLogs,
       getLogContent: mocks.getLogContent,
+      getLogContentPart: mocks.getLogContentPart,
     },
   };
 });
@@ -27,6 +29,7 @@ describe("RequestLogsPage", () => {
     await i18n.changeLanguage("zh-CN");
     mocks.getUsageLogs.mockReset();
     mocks.getLogContent.mockReset();
+    mocks.getLogContentPart.mockReset();
   });
 
   test("renders the first token latency column from backend data", async () => {
@@ -53,6 +56,9 @@ describe("RequestLogsPage", () => {
           total_tokens: 30,
           cost: 0.0123,
           has_content: false,
+          client_name: "codex",
+          client_variant: "codex-tui",
+          client_version: "0.118.0",
         },
       ],
       total: 1,
@@ -81,6 +87,15 @@ describe("RequestLogsPage", () => {
 
     expect(await screen.findByText("First Token")).toBeInTheDocument();
     expect(await screen.findByText("183ms")).toBeInTheDocument();
+    expect(await screen.findByText("Client Version")).toBeInTheDocument();
+    expect(await screen.findByText("0.118.0")).toBeInTheDocument();
+    const client = screen.getByText("Codex", { selector: "span[tabindex]" });
+    expect(screen.queryByRole("button", { name: "Codex" })).not.toBeInTheDocument();
+    fireEvent.mouseEnter(client.parentElement!);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent("codex-tui");
+    fireEvent.click(client);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(mocks.getLogContentPart).not.toHaveBeenCalled();
   });
 
   test("does not crash when backend returns null filter arrays", async () => {

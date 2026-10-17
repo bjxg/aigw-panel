@@ -4,7 +4,7 @@ export type LogContentPart = LogContentBodyPart | "details";
 export interface LogContentModalProps {
   open: boolean;
   logId: number | null;
-  initialTab?: LogContentBodyPart;
+  initialTab?: LogContentPart;
   onClose: () => void;
   showRequestDetails?: boolean;
   fetchFn?: (

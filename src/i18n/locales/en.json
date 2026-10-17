@@ -2203,6 +2203,9 @@
     "no_data": "Enter an API Key to query"
   },
   "request_logs": {
+    "col_client": "Client",
+    "col_client_version": "Client Version",
+    "client_unknown": "Unknown",
     "title": "Request Logs",
     "all_keys": "All Keys",
     "all_models": "All Models",

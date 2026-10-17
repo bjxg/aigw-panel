@@ -271,6 +271,10 @@ export interface DashboardThroughputPoint {
 }
 
 export interface UsageLogItem {
+  client_user_agent?: string;
+  client_name?: string;
+  client_variant?: string;
+  client_version?: string;
   id: number;
   timestamp: string;
   api_key_id: number;

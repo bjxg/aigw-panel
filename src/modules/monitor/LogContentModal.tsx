@@ -259,6 +259,11 @@ function buildClientAttempt(client: unknown): RequestDetailAttempt {
     "query",
     "host",
     "content_length",
+    "client_name",
+    "client_variant",
+    "client_version",
+    "client_user_agent",
+    "client_user_agent_truncated",
   ];
   const rows: RequestDetailRow[] = [];
   preferredKeys.forEach((key) => pushDetailRow(rows, key, record[key]));

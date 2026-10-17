@@ -35,9 +35,9 @@ export function RequestLogsPage() {
   // Content modal state
   const [contentModalOpen, setContentModalOpen] = useState(false);
   const [contentModalLogId, setContentModalLogId] = useState<number | null>(null);
-  const [contentModalTab, setContentModalTab] = useState<"input" | "output">("input");
+  const [contentModalTab, setContentModalTab] = useState<"input" | "output" | "details">("input");
 
-  const handleContentClick = useCallback((logId: number, tab: "input" | "output") => {
+  const handleContentClick = useCallback((logId: number, tab: "input" | "output" | "details") => {
     setContentModalLogId(logId);
     setContentModalTab(tab);
     setContentModalOpen(true);

@@ -110,7 +110,6 @@
 
 ## 运维连接信息
 
-
 ## 交付偏好
 
 - 开始任何项目/任务前，必须先确保本地 `dev` 和 `main` 分支已同步到远端最新代码；建议先 `git fetch origin`，再分别更新 `dev` 与 `main`（优先使用 fast-forward 更新，避免无意产生合并提交）。若工作区存在未提交改动，先确认改动归属，避免覆盖用户或其它任务的变更。
@@ -123,3 +122,8 @@
 （可选）在此处追加本项目特有的关键路径、命令、约束与注意事项。该区块不会被生成脚本覆盖。
 
 <!-- PROJECT-OVERRIDES:END -->
+
+## 请求日志客户端信息
+
+- `src/modules/monitor/requestLogsShared.tsx` 维护客户端/版本列及悬停提示（完整名称和版本显示 variant，否则显示原始 UA）；客户端列无点击弹窗。
+- 本次任务记录：`.helloagents/plan/2026-10-17-client-identity/tasks.md`；验证记录：`.sisyphus/sessions/2026-10-17-client-identity/plan/`。

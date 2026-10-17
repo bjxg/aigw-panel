@@ -1,4 +1,5 @@
 import { defineConfig, type Plugin } from "vitest/config";
+import { loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
@@ -39,91 +40,107 @@ function spaFallbackForManage(): Plugin {
   };
 }
 
-export default defineConfig({
-  base: "/",
-  plugins: [react(), tailwindcss(), panelMetadataPlugin(), spaFallbackForManage()],
-  define: {
-    // Prefer CI-provided build version (branch+sha/tag) so UI version auto-refreshes on deploy.
-    __APP_VERSION__: JSON.stringify(
-      process.env.VITE_APP_VERSION ??
-        process.env.APP_VERSION ??
-        process.env.npm_package_version ??
-        "dev",
-    ),
-  },
-  test: {
-    environment: "jsdom",
-    setupFiles: ["src/test/setup.ts"],
-    include: ["src/**/*.test.{ts,tsx}"],
-    exclude: ["e2e/**", "node_modules/**", "dist/**"],
-    restoreMocks: true,
-    clearMocks: true,
-    mockReset: true,
-    testTimeout: 10_000,
-  },
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "src"),
+export default defineConfig(({ mode }) => {
+  // 允许本地开发绕过 IDE 端口转发占用，配置不会注入浏览器。
+  const backendAddress =
+    loadEnv(mode, process.cwd(), "AIGW_").AIGW_DEV_PROXY_TARGET || "http://127.0.0.1:8217";
+
+  const backendUrl = new URL(backendAddress);
+  // http-proxy 的字符串目标会保留 IPv6 方括号，导致 DNS 查询失败。
+  const backendTarget = backendUrl.hostname.startsWith("[")
+    ? {
+        host: backendUrl.hostname.slice(1, -1),
+        port: Number(backendUrl.port || (backendUrl.protocol === "https:" ? 443 : 80)),
+        protocol: backendUrl.protocol,
+      }
+    : backendAddress;
+
+  return {
+    base: "/",
+    plugins: [react(), tailwindcss(), panelMetadataPlugin(), spaFallbackForManage()],
+    define: {
+      // Prefer CI-provided build version (branch+sha/tag) so UI version auto-refreshes on deploy.
+      __APP_VERSION__: JSON.stringify(
+        process.env.VITE_APP_VERSION ??
+          process.env.APP_VERSION ??
+          process.env.npm_package_version ??
+          "dev",
+      ),
     },
-  },
-  css: {
-    modules: {
-      localsConvention: "camelCase",
-      generateScopedName: "[name]__[local]___[hash:base64:5]",
+    test: {
+      environment: "jsdom",
+      setupFiles: ["src/test/setup.ts"],
+      include: ["src/**/*.test.{ts,tsx}"],
+      exclude: ["e2e/**", "node_modules/**", "dist/**"],
+      restoreMocks: true,
+      clearMocks: true,
+      mockReset: true,
+      testTimeout: 10_000,
     },
-    preprocessorOptions: {
-      scss: {
-        additionalData: '@use "@/styles/variables.scss" as *;',
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "src"),
       },
     },
-  },
-  build: {
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, "index.html"),
-        manage: path.resolve(__dirname, "manage.html"),
-        user: path.resolve(__dirname, "user.html"),
+    css: {
+      modules: {
+        localsConvention: "camelCase",
+        generateScopedName: "[name]__[local]___[hash:base64:5]",
       },
-      output: {
-        manualChunks: {
-          "vendor-react": ["react", "react-dom", "react-router-dom"],
-          "vendor-i18n": ["i18next", "react-i18next", "goey-toast"],
-          "vendor-echarts": ["echarts", "echarts-for-react"],
-          "vendor-animation": ["framer-motion", "gsap"],
-          "vendor-charts": ["chart.js", "react-chartjs-2"],
-          "vendor-markdown": ["react-markdown", "react-syntax-highlighter", "remark-gfm"],
+      preprocessorOptions: {
+        scss: {
+          additionalData: '@use "@/styles/variables.scss" as *;',
         },
       },
     },
-  },
-  server: {
-    host: true,
-    port: 5173,
-    proxy: {
-      "/v0": {
-        target: "http://127.0.0.1:8217",
-        changeOrigin: false,
-        ws: true,
-      },
-      "/v1": {
-        target: "http://127.0.0.1:8217",
-        changeOrigin: false,
-        ws: true,
-      },
-      "/v1beta": {
-        target: "http://127.0.0.1:8217",
-        changeOrigin: false,
-        ws: true,
-      },
-      "/oidc": {
-        target: "http://127.0.0.1:8217",
-        changeOrigin: false,
-        ws: true,
-      },
-      "/user/api": {
-        target: "http://127.0.0.1:8217",
-        changeOrigin: false,
+    build: {
+      rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, "index.html"),
+          manage: path.resolve(__dirname, "manage.html"),
+          user: path.resolve(__dirname, "user.html"),
+        },
+        output: {
+          manualChunks: {
+            "vendor-react": ["react", "react-dom", "react-router-dom"],
+            "vendor-i18n": ["i18next", "react-i18next", "goey-toast"],
+            "vendor-echarts": ["echarts", "echarts-for-react"],
+            "vendor-animation": ["framer-motion", "gsap"],
+            "vendor-charts": ["chart.js", "react-chartjs-2"],
+            "vendor-markdown": ["react-markdown", "react-syntax-highlighter", "remark-gfm"],
+          },
+        },
       },
     },
-  },
+    server: {
+      host: true,
+      port: 5173,
+      proxy: {
+        "/v0": {
+          target: backendTarget,
+          changeOrigin: false,
+          ws: true,
+        },
+        "/v1": {
+          target: backendTarget,
+          changeOrigin: false,
+          ws: true,
+        },
+        "/v1beta": {
+          target: backendTarget,
+          changeOrigin: false,
+          ws: true,
+        },
+        "/oidc": {
+          target: backendTarget,
+          changeOrigin: false,
+          ws: true,
+        },
+        "/user/api": {
+          target: backendTarget,
+          changeOrigin: false,
+        },
+      },
+    },
+  };
 });
